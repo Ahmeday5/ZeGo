@@ -1,0 +1,142 @@
+.loginPage {
+  background: var(--main-color);
+  min-height: 100vh !important;
+  height: auto !important;
+}
+
+.loginPage .imgs {
+  display: flex;
+  justify-content: center;
+}
+
+.loginPage .imgs img {
+  width: 80%;
+}
+
+form {
+  background: var(--bg-main);
+  border-radius: 12px;
+  color: var(--main-color);
+  padding: 15px 0;
+}
+
+.form-group {
+  position: relative;
+}
+
+.form-group .form-label {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.form-group .form-control {
+  padding: 15px !important;
+  background: var(--third-color);
+  border-radius: 8px;
+}
+
+.form-control::placeholder {
+  color: var(--main-color);
+  font-family: var(--main-font) !important;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 100%;
+}
+
+.form-control:focus {
+  background: var(--third-color);
+  box-shadow: none;
+  border: none;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 69%;
+  left: 1.5%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  padding: 5px;
+}
+
+.remember {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  margin-right: 15px;
+}
+
+.remember input {
+  margin-left: 5px !important;
+}
+
+.remember label {
+  font-family: var(--main-font) !important;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--main-color);
+}
+
+.forgetpass a {
+  font-family: var(--main-font) !important;
+  font-weight: bold;
+  font-size: 17px;
+  color: var(--main-color);
+}
+
+.submit a {
+  border-radius: 8px;
+  background: var(--main-color);
+  font-family: var(--main-font) !important;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 100%;
+  color: var(--third-color);
+  padding: 15px 80px;
+}
+
+@media (max-width: 992px) {
+  .header h1::before {
+    width: 30%;
+  }
+
+  .header h1::after {
+    width: 30%;
+  }
+
+  .forgetpass .forgetpassdiv {
+    justify-content: center;
+  }
+
+  .submit a {
+    width: 90%;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  .header h1::before {
+    width: 25%;
+  }
+
+  .header h1::after {
+    width: 25%;
+  }
+
+  .submit a {
+    width: 100%;
+  }
+}
+
+@media (max-width: 400px) {
+  .header h1::before {
+    width: 20%;
+  }
+
+  .header h1::after {
+    width: 20%;
+  }
+
+  .submit a {
+    width: 100%;
+  }
+}

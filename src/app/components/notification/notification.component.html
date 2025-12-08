@@ -1,0 +1,68 @@
+<div class="notification mt-2 mb-3">
+  <div class="container-fluid p-0">
+    <div class="row p-0">
+      <div class="col-12 p-0">
+        <!-- العنوان -->
+        <div class="row">
+          <div class="page-title">
+            <h1>
+              <span class="icon">
+                <i class="fas fa-envelope"></i>
+              </span>
+              الرسائل
+            </h1>
+            <h4>إرسال إشعارات للمستخدمين والسائقين</h4>
+          </div>
+        </div>
+
+        <div class="content mt-2">
+          <div class="cardParent">
+            <div class="card-header">
+              <div class="row justify-content-between align-items-center">
+                <div class="col-md-6">
+                  <h4 class="customer-title">إنشاء رسالة</h4>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <!-- الفورم -->
+              <form class="mt-2">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-section mt-3">
+                      <label for="topic">حدد الجمهور</label>
+                      <select id="topic" class="form-control" name="topic" required>
+                        <option value="patient">كل السائقين</option>
+                        <option value="doctor">كل العملاء</option>
+                        <option value="doctor">السائقين الناشطين</option>
+                        <option value="doctor">الجميع</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-section mt-3">
+                      <label for="title">نص الرسالة</label>
+                      <input id="title" class="form-control" name="title" placeholder="اكتب نص رسالتك" required />
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="form-section mt-3">
+                      <label for="body">محتوى الرسالة</label>
+                      <textarea id="body" class="form-control" placeholder="اكتب رسالتك" rows="11" name="body"
+                        required></textarea>
+                    </div>
+                  </div>
+                  <div class="col-12 d-flex justify-content-center text-center mt-2">
+                    <button class="btn btn-save" type="submit"><span>إرسالة الرسالة</span>
+                      <span *ngIf="isLoading">جاري الإرسال...</span></button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

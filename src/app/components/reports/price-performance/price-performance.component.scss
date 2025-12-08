@@ -1,0 +1,61 @@
+.Indicators,
+.Trip-completion {
+  background: var(--third-color);
+  padding: 25px;
+  border-radius: 12px;
+}
+
+.Indicators .main-title,
+.Trip-completion .main-title {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.Indicators .inducator {
+  background: var(--bg-main);
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.inducator .content h4 {
+  font-size: 19px;
+  font-weight: bold;
+}
+
+.inducator .precents {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+}
+
+.inducator .precent h5 {
+  font-size: 22px;
+  font-weight: bold;
+  color: #00a63e;
+}
+
+/**************Trip-completion******************/
+
+/* شريط التقدم */
+.Trip-completion .custom-progress {
+  background: var(--bg-main);
+  height: 22px;
+  border-radius: 50px;
+  overflow: hidden;
+}
+
+.Trip-completion .custom-progress .progress-bar {
+  height: 100%;
+  border-radius: 50px;
+}
+
+/* النصوص */
+.Trip-completion .progress-label {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.Trip-completion .percentage {
+  font-weight: 700;
+  font-size: 1rem;
+}

@@ -1,0 +1,83 @@
+<div class="reports mt-2 mb-3">
+    <div class="container-fluid p-0">
+        <div class="row p-0">
+            <div class="col-md-12 p-0">
+                <div class="row">
+                    <div class="page-title">
+                        <h1>
+                            <span class="icon">
+                                <i class="fa-solid fa-chart-column"></i>
+                            </span>
+                            التقارير
+                        </h1>
+                        <h4>رؤى تجارية شاملة</h4>
+                    </div>
+                </div>
+
+                <!------------------stats-card------------------->
+
+                <div class="row mt-3">
+                    <div class="col-lg-3 col-md-6 mt-2">
+                        <div class="stats-card">
+                            <div class="total">
+                                <i class="fa-solid fa-money-bill"></i>
+                                <h5>إجمالي الأيرادات</h5>
+                                <h6>10500 جنية</h6>
+                            </div>
+                            <div class="ago">
+                                <h6>من الأسبوع الماضي +12.5%</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mt-2">
+                        <div class="stats-card">
+                            <div class="total">
+                                <i class="fa-solid fa-car"></i>
+                                <h5>إجمالي الرحلات</h5>
+                                <h6>1500 رحلة</h6>
+                            </div>
+                            <div class="ago">
+                                <h6>من الأسبوع الماضي +12.5%</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mt-2">
+                        <div class="stats-card">
+                            <div class="total">
+                                <i class="fa-solid fa-users"></i>
+                                <h5>إجمالي الرحلات</h5>
+                                <h6>1500 عميل</h6>
+                            </div>
+                            <div class="ago">
+                                <h6>من الأسبوع الماضي +12.5%</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mt-2">
+                        <div class="stats-card">
+                            <div class="total">
+                                <i class="fa-solid fa-user-tie"></i>
+                                <h5>سائقين نشطين</h5>
+                                <h6>300 سائق</h6>
+                            </div>
+                            <div class="ago">
+                                <h6>من الأسبوع الماضي +12.5%</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row-cols-1 row-cols-md-10 row-cols-lg-11 mt-3">
+                    <button class="btn-filter btn-filter-customer mt-1" [routerLinkActive]="'active'"
+                        [routerLinkActiveOptions]="{ exact: true }" routerLink="finances">الـماليات</button>
+                    <button class="btn-filter btn-filter-driver mt-1" [routerLinkActive]="'active'"
+                        [routerLinkActiveOptions]="{ exact: true }" routerLink="price-performance">أداء الأسعار</button>
+                </div>
+
+                <div class="content mt-2">
+                    <router-outlet></router-outlet>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

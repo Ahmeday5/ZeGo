@@ -1,0 +1,56 @@
+.pricing {
+  color: var(--main-color);
+  font-family: var(--main-font);
+  padding-bottom: 25px;
+}
+
+.pricing .banner h6 {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+/*********form*************/
+
+.form-pricing {
+  background: #ffffff !important;
+  margin-top: 25px;
+  padding: 20px 15px !important;
+  border-radius: 12px;
+}
+
+form .form-section .form-label {
+  font-weight: bold;
+  font-size: 14px !important;
+}
+
+form .form-section .form-control {
+  border: 2px solid var( --bg-main);
+  background: var( --bg-main) !important;
+  padding: 12px 15px;
+  border-radius: 12px;
+}
+
+form .form-section .form-control:focus,
+form .form-section .form-select:focus {
+  border-color: var(--main-color);
+  box-shadow: none;
+  outline: none;
+}
+
+form .form-section .form-control::placeholder {
+  color: var(--main-color);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 100%;
+}
+
+form .btn-save {
+  width: 28%;
+  background: var(--main-color);
+  color: var(--bg-main);
+  font-size: 25px;
+  padding: 0;
+  font-weight: bold;
+  border-radius: 8px;
+}
+

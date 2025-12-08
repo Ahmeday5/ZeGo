@@ -1,0 +1,102 @@
+.container {
+  padding-bottom: 20px;
+}
+
+.page-title {
+  background-color: var(--main-color);
+  color: var(--third-color);
+  width: 25%;
+  padding: 10px;
+  text-align: center;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+form {
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.form-section {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.form-label {
+  font-weight: bold;
+  color: var(--main-color);
+}
+
+.form-control {
+  border-radius: 8px;
+  border: 2px solid var(--main-color);
+}
+
+.form-control:focus {
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 0.2rem rgba(var(--main-color-rgb), 0.25);
+}
+
+form .form-section .form-control::placeholder {
+  color: rgba(109, 105, 105, 1);
+  font-family: var(--font-arabic) !important;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 100%;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 68%;
+  left: 50.5%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  padding: 5px;
+}
+
+form .btn-save {
+  width: 20%;
+  background: var(--main-color);
+  color: var(--third-color);
+  font-size: 22px;
+  padding: 0;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+form .btn-cansel {
+  width: 15%;
+  background: #8f8f8f;
+  color: var(--main-color);
+  font-size: 22px;
+  padding: 0;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+@media (max-width: 1563px) {
+  .page-title {
+    width: 35%;
+  }
+}
+
+@media (max-width: 992px) {
+  .page-title {
+    width: 80%;
+  }
+
+  form .btn-save {
+    width: 40%;
+  }
+
+  form .btn-cansel {
+    width: 30%;
+  }
+}
+
+@media (max-width: 767px) {
+  .password-toggle {
+    top: 68%;
+    left: 3%;
+  }
+}

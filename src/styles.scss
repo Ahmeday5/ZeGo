@@ -1,0 +1,61 @@
+:root {
+  --main-color: #15304e;
+  --second-color: #ef7923;
+  --third-color: #f9fafb;
+  --bg-main: #d9d9d9;
+  --main-font: "Almarai", sans-serif;
+  --main-transition: 0.3s;
+}
+
+html {
+  /* عشان لم ادوس علي حاجة يروح للمكان بتاعها*/
+  scroll-behavior: smooth;
+  font-family: var(--main-font) !important;
+}
+
+body {
+  margin: 0 !important;
+  font-family: var(--main-font) !important;
+  font-weight: 300;
+  font-style: normal;
+  direction: rtl;
+}
+
+.row {
+  margin: 0;
+}
+
+.container-fluid {
+  padding-right: 30px !important;
+  padding-left: 30px !important;
+}
+
+.btn:focus {
+  border: none;
+}
+
+/************/
+.form-switch {
+  display: flex;
+  justify-content: center;
+}
+
+.form-switch .form-check-input {
+  border: 1px solid var(--main-color);
+}
+
+.form-switch .form-check-input:focus {
+  box-shadow: none;
+}
+.form-check-input:checked {
+  background-color: var(--main-color);
+  border-color: var(--main-color);
+}
+/**************/
+
+/*************alert*******************/
+svg {
+  width: 30px;
+  height: 25px;
+  margin-left: 20px;
+}

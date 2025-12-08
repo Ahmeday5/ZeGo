@@ -1,0 +1,29 @@
+<div class="manage-users mt-2 mb-3">
+  <div class="container-fluid p-0">
+    <div class="row p-0">
+      <div class="col-md-12 p-0">
+        <div class="row">
+          <div class="page-title">
+            <h3>
+              <span class="icon">
+                <i class="fa-solid fa-users-gear"></i>
+              </span>
+              إدارة المستخدمين
+            </h3>
+          </div>
+        </div>
+
+        <div class="row-cols-1 row-cols-md-10 row-cols-lg-11 mt-1">
+          <button class="btn-filter btn-filter-customer mt-1" [routerLinkActive]="'active'" [routerLinkActiveOptions]="{ exact: true }"
+            routerLink="list-customer">عملاء</button>
+          <button class="btn-filter btn-filter-driver mt-1" [routerLinkActive]="'active'" [routerLinkActiveOptions]="{ exact: true }"
+            routerLink="list-driver">سائقين</button>
+        </div>
+
+        <div class="content mt-2">
+          <router-outlet></router-outlet>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

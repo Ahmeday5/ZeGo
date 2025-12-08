@@ -1,0 +1,71 @@
+/* تنسيق حاوية الـ Sidebar والمحتوى */
+.content-wrapper {
+  direction: rtl;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-main) !important;
+  height: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  font-family: var(--main-font) !important;
+}
+
+/* تنسيق المحتوى الرئيسي */
+.content {
+  margin-right: 17vw;
+  background: var(--bg-main) !important;
+  height: auto;
+  width: calc(100vw - 17vw) !important;
+  padding: 0 !important;
+  overflow: hidden;
+  font-family: var(--main-font) !important;
+  margin-top: 20px;
+}
+
+/* تنسيق المحتوى عند عدم وجود Sidebar (مثل صفحات Splash وLogin) */
+.full-width {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  font-family: var(--main-font) !important;
+}
+
+@media (max-width: 992px) {
+  .content {
+    width: 100% !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    margin-top: 40px;
+  }
+
+  .full-width {
+    width: 100% !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .content {
+    margin-top: 40px;
+  }
+
+  .full-width {
+    width: 100% !important;
+    margin-right: 0 !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .content {
+    margin-top: 40px;
+  }
+
+  .full-width {
+    width: 100% !important;
+    margin-right: 0 !important;
+  }
+}

@@ -1,0 +1,182 @@
+<div class="reports mt-2 mb-3">
+  <div class="container-fluid p-0">
+    <div class="row p-0">
+      <div class="col-md-12 p-0">
+
+        <!-- العنوان -->
+        <div class="row">
+          <div class="page-title">
+            <h1>
+              <span class="icon">
+                <i class="fa-solid fa-chart-column"></i>
+              </span>
+              التقارير
+            </h1>
+            <h4>رؤى تجارية شاملة</h4>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mt-3">
+          <div class="col-lg-3 col-md-6 mt-2">
+            <div class="stats-card">
+              <div class="total">
+                <i class="fa-solid fa-money-bill"></i>
+                <h5>إجمالي الأيرادات</h5>
+                <h6>{{ totals.totalEarnings | number:'1.2-2' }} جنيه</h6>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6 mt-2">
+            <div class="stats-card">
+              <div class="total">
+                <i class="fa-solid fa-car"></i>
+                <h5>إجمالي الرحلات</h5>
+                <h6>{{ totals.totalTrips | number }} رحلة</h6>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6 mt-2">
+            <div class="stats-card">
+              <div class="total">
+                <i class="fa-solid fa-users"></i>
+                <h5>إجمالي العملاء</h5>
+                <h6>{{ totals.totalClients | number }} عميل</h6>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6 mt-2">
+            <div class="stats-card">
+              <div class="total">
+                <i class="fa-solid fa-user-tie"></i>
+                <h5>سائقين نشطين</h5>
+                <h6>{{ totals.totalDrivers | number }} سائق</h6>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- الجدول والفلتر -->
+        <div class="content mt-2">
+          <div class="cardParent">
+            <div class="card-header">
+              <div class="row justify-content-between align-items-center">
+                <div class="col-md-6">
+                  <h3 class="customer-title">تقرير أرباح السائقين</h3>
+                </div>
+
+                <div class="col-md-6 d-flex gap-2 justify-content-end">
+                  <button type="button" class="btn Custombtn-filter" (click)="toggleFilter()">
+                    <img src="/assets/img/customer/filter.png" class="img-fluid" alt="فلتر">
+                    <h6>بحث</h6>
+                  </button>
+
+                  <button type="button" class="btn Custombtn-export" (click)="exportCSV()">
+                    <h6>تصدير CSV</h6>
+                  </button>
+                </div>
+              </div>
+
+              @if (showFilter) {
+              <!-- الفلتر -->
+              <div class="filter mt-3">
+                <form [formGroup]="filterForm" (ngSubmit)="applyFilter()">
+                  <h3 class="mb-4">فلترة التقرير</h3>
+
+                  <div class="row g-3">
+                    <div class="col-md-3">
+                      <label class="form-label">نوع التقرير</label>
+                      <select formControlName="filterType" class="form-select" (change)="applyFilter()">
+                        <option value="" disabled selected>اختر</option>
+                        <option value="daily">يومي</option>
+                        <option value="weekly">أسبوعي</option>
+                        <option value="monthly">شهري</option>
+                        <option value="yearly">سنوي</option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-3" *ngIf="filterForm.value.filterType !== 'daily'">
+                      <label class="form-label">السنة</label>
+                      <select formControlName="year" class="form-select" (change)="applyFilter()">
+                        <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-3" *ngIf="filterForm.value.filterType === 'monthly'">
+                      <label class="form-label">الشهر</label>
+                      <select formControlName="month" class="form-select" (change)="applyFilter()">
+                        <option *ngFor="let m of months" [value]="m.value">{{ m.name }}</option>
+                      </select>
+                    </div>
+
+                  </div>
+
+                  <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button type="button" class="btn btn-filtering" (click)="clearFilter()">تفريغ</button>
+                  </div>
+                </form>
+              </div>
+              }
+
+            </div>
+
+            <!-- الجدول -->
+            <div class="card-body custom-table">
+              <div class="table-responsive custom-table position-relative mb-4">
+                <!-- Spinner فوق الجدول (overlay) -->
+                @if (loading) {
+                <div
+                  class="position-absolute top-50 start-50 translate-middle z-3 bg-white bg-opacity-75 w-100 h-100 d-flex align-items-center justify-content-center rounded">
+                  <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">جاري التحميل...</span>
+                  </div>
+                </div>
+                }
+
+                <table class="table custom-table-design text-center mb-0">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>اسم السائق</th>
+                      <th>رقم البطاقة</th>
+                      <th>إجمالي الرحلات</th>
+                      <th>إجمالي الأيرادات</th>
+                      <th>المستحقات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (driver of drivers; track driver.driverId; let i = $index) {
+                    <tr>
+                      <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+                      <td>{{ driver.driverName }}</td>
+                      <td>{{ driver.driverNationalId }}</td>
+                      <td>{{ driver.totalTrips }}</td>
+                      <td>{{ driver.totalEarning | number:'1.2-2' }} جنية</td>
+                      <td>{{ driver.totalAppDebt | number:'1.2-2' }} جنية</td>
+                    </tr>
+                    }
+                    @if (drivers.length === 0 && !loading) {
+                    <tr>
+                      <td colspan="6" class="text-center py-4 text-muted">لا توجد بيانات للعرض</td>
+                    </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- الباجنيشن -->
+              <div class="All-Pagination" dir="ltr" *ngIf="totalPages > 1">
+                <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" [windowSize]="2"
+                  (pageChange)="onPageChange($event)">
+                </app-pagination>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

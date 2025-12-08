@@ -1,0 +1,83 @@
+.customer-title {
+  color: var(--main-color);
+  font-weight: bold;
+}
+
+.page-title h3 {
+  color: var(--main-color);
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.page-title h3 .icon {
+  font-size: 15px;
+  margin-left: 5px;
+}
+
+.page-title h3 .number {
+  font-size: 20px;
+  font-weight: bold;
+  margin-right: 2px;
+}
+
+.btn-addadmin {
+  background: var(--main-color);
+  color: var(--third-color);
+}
+
+.btn-addadmin:focus {
+  background: var(--main-color);
+  color: var(--third-color);
+}
+
+/************  table *****************/
+
+.cardParent {
+  border: 3px solid var(--main-color);
+  border-radius: 12px;
+  background: var(--third-color);
+  padding: 15px;
+  padding-bottom: 0px !important;
+}
+
+.custom-table {
+  overflow-x: auto;
+  margin-top: 10px;
+}
+
+.custom-table-design thead th {
+  color: var(--main-color);
+  font-weight: bold;
+  font-size: 18px;
+  padding: 10px !important;
+  border-bottom: 2px solid var(--main-color);
+}
+
+.custom-table-design td {
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--main-color);
+  padding: 10px !important;
+  border-bottom: 2px solid var(--main-color); // خط برتقالي بين العواميد في الجسم
+}
+
+.btn-edit {
+  border: none;
+}
+
+.btn-edit:focus,
+.btn-edit:active,
+.btn-edit:focus-visible {
+  border: none;
+}
+
+.btn-edit img {
+  max-width: 100%;
+  height: auto;
+}
+
+.img-check {
+  width: 15px;
+  height: 15px;
+}
