@@ -17,7 +17,7 @@ export interface JwtPayload {
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly API_URL = 'http://78.89.159.126:9393/TheOneAPIZego';
+  private readonly API_URL = 'https://zego.premiumasp.net';
 
   public isLoggedInSubject = new BehaviorSubject<boolean>(
     localStorage.getItem('isLoggedIn') === 'true'

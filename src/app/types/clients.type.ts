@@ -3,6 +3,9 @@ export interface allClient {
   name: string;
   phone: string;
   email: string;
+  isActive: boolean;
+  profileImageUrl: string;
+  createdAt:string;
 }
 
 export interface ClientsResponse {
@@ -10,6 +13,6 @@ export interface ClientsResponse {
   pageIndex: number;
   pageSize: number;
   count: number;
-  totalPages?: number;   // ← خليناه اختياري
+  totalPages?: number; // ← خليناه اختياري
   errorMessage?: string;
 }

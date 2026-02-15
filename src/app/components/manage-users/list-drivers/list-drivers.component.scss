@@ -168,3 +168,48 @@ select option:disabled {
   width: 15px;
   height: 15px;
 }
+
+/************/
+
+.form-label {
+  font-weight: bold;
+  color: var(--main-color);
+}
+
+.form-control,
+.form-select {
+  border-radius: 8px;
+  border: 2px solid var(--main-color);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 0.2rem rgba(var(--main-color-rgb), 0.25);
+}
+
+ .form-control::placeholder {
+  color: rgba(109, 105, 105, 1);
+  font-family: var(--font-arabic) !important;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 100%;
+}
+
+.btn-save {
+  background: var(--main-color);
+  color: var(--third-color);
+  font-size: 18px;
+  padding: 15px;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+.btn-cansel {
+  background: #8f8f8f;
+  color: var(--main-color);
+  font-size: 18px;
+  padding: 15px;
+  font-weight: bold;
+  border-radius: 8px;
+}

@@ -1,0 +1,96 @@
+<div class="container py-5">
+  <div class="card shadow-lg border-0">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h4 class="mb-0 fw-bold">تفاصيل الرحلة رقم {{ trip?.tripId || 'جاري التحميل...' }}</h4>
+      <button class="btn btn-light" (click)="goBack()">
+       رجوع <i class="fa-solid fa-arrow-left"></i>
+      </button>
+    </div>
+
+    <div class="card-body">
+      @if (loading) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;"></div>
+        <p class="mt-3">جاري تحميل تفاصيل الرحلة...</p>
+      </div>
+      } @else if (errorMessage) {
+      <div class="alert alert-danger text-center">
+        {{ errorMessage }}
+      </div>
+      } @else if (trip) {
+      <div class="row g-4">
+        <!-- معلومات الرحلة -->
+        <div class="col-lg-6">
+          <h5 class="text-primary border-bottom pb-2 mb-3">بيانات الرحلة</h5>
+          <div class="row mb-2">
+            <div class="col-5 fw-bold">الحالة:</div>
+            <div class="col-7">
+              <span class="badge fs-6 px-3 py-2" [style.backgroundColor]="getStatusColor(trip.status)">
+                {{ getStatusInArabic(trip.status) }}
+              </span>
+            </div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-5 fw-bold">السعر المقترح:</div>
+            <div class="col-7">{{ trip.proposedPrice | number:'1.2-2' }} جنيه</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-5 fw-bold">تاريخ الإنشاء:</div>
+            <div class="col-7">{{ trip.createdAt | date:'medium' }}</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-5 fw-bold">منذ:</div>
+            <div class="col-7">{{ trip.timeAgo }}</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-5 fw-bold">نوع السيارة:</div>
+            <div class="col-7">{{ trip.carType }}</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-5 fw-bold">عدد العروض:</div>
+            <div class="col-7">{{ trip.offerCount }}</div>
+          </div>
+        </div>
+
+        <!-- العميل -->
+        <div class="col-lg-6">
+          <h5 class="text-primary border-bottom pb-2 mb-3">العميل</h5>
+          <div class="row mb-2">
+            <div class="col-5 fw-bold">الاسم:</div>
+            <div class="col-7">{{ trip.client.name || 'غير محدد' }}</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-5 fw-bold">رقم العميل:</div>
+            <div class="col-7">{{ trip.client.id || '-' }}</div>
+          </div>
+        </div>
+
+        <!-- السائق إن وجد -->
+        @if (trip.driver) {
+        <div class="col-12 mt-4">
+          <h5 class="text-primary border-bottom pb-2 mb-3">السائق</h5>
+          <div class="row">
+            <div class="col-md-4 fw-bold">الاسم:</div>
+            <div class="col-md-8">{{ trip.driver.name }}</div>
+          </div>
+          <div class="row">
+            <div class="col-md-4 fw-bold">رقم الهاتف:</div>
+            <div class="col-md-8">{{ trip.driver.phone }}</div>
+          </div>
+          <div class="row">
+            <div class="col-md-4 fw-bold">التقييم:</div>
+            <div class="col-md-8">{{ trip.driver.rating || 'لا يوجد تقييم' }}</div>
+          </div>
+        </div>
+        } @else {
+        <div class="col-12 mt-4">
+          <div class="alert alert-info text-center fw-bold">
+            الرحلة بدون سائق حاليًا
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+</div>

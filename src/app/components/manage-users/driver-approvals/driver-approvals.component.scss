@@ -125,6 +125,45 @@
   border-radius: 8px;
 }
 
+/******************************************/
+
+.edit-percentage-btn {
+  font-size: 0.95rem;
+  padding: 0.4rem 1rem;
+  background: transparent;
+  border: 1px solid var(--main-color);
+}
+
+.edit-percentage-btn:hover,
+.edit-percentage-btn:focus {
+  background: var(--main-color);
+  color: var(--third-color);
+}
+
+.bg-header {
+  background: var(--main-color);
+  color: var(--third-color);
+}
+
+.current-percentage {
+  background: #e7f1ff;
+  border: 1px solid #c3d9ff;
+}
+
+.modal-content {
+  border-radius: 16px !important;
+}
+
+.modal-header {
+  border-bottom: none !important;
+}
+
+.input-group-lg .form-control {
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+}
+
 @media (max-width: 992px) {
   .btn-accept,
   .btn-refud {

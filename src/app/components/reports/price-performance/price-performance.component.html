@@ -1,98 +1,151 @@
-<div class="row mt-1 g-3">
-    <div class="col-md-6">
-        <div class="Indicators">
-            <h4 class="main-title">مؤشرات الأداء الرئيسية</h4>
-            <div class="row mt-4 inducator">
-                <div class="col-md-6">
-                    <div class="content">
-                        <h4>متوسط ​​قيمة الرحلة</h4>
-                        <h4>3500 جنية</h4>
-                    </div>
-                </div>
-                <div class="col-md-6 precents">
-                    <div class="precent">
-                        <h5>+2.5%</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-4 inducator">
-                <div class="col-md-6">
-                    <div class="content">
-                        <h4>متوسط ​​قيمة الرحلة</h4>
-                        <h4>3500 جنية</h4>
-                    </div>
-                </div>
-                <div class="col-md-6 precents">
-                    <div class="precent">
-                        <h5>+2.5%</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-4 inducator">
-                <div class="col-md-6">
-                    <div class="content">
-                        <h4>متوسط ​​قيمة الرحلة</h4>
-                        <h4>3500 جنية</h4>
-                    </div>
-                </div>
-                <div class="col-md-6 precents">
-                    <div class="precent">
-                        <h5>+2.5%</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-4 inducator">
-                <div class="col-md-6">
-                    <div class="content">
-                        <h4>متوسط ​​قيمة الرحلة</h4>
-                        <h4>3500 جنية</h4>
-                    </div>
-                </div>
-                <div class="col-md-6 precents">
-                    <div class="precent">
-                        <h5>+2.5%</h5>
-                    </div>
-                </div>
-            </div>
+<div class="reports mt-2 mb-3">
+  <div class="container-fluid p-0">
+    <div class="row p-0">
+      @if (driver && !loading) {
+      <div class="col-md-12 p-0">
+        <!-- العنوان -->
+        <div class="row">
+          <div class="page-title">
+            <h1>
+              <span class="icon">
+                <i class="fa-solid fa-chart-column"></i>
+              </span>
+              التقارير
+            </h1>
+            <h4>رحلات السائق : {{ driver.driverName }}</h4>
+          </div>
         </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="Trip-completion">
-            <h4 class="main-title">مؤشرات الأداء الرئيسية</h4>
-
-            <!-- 75% -->
-            <div class="row align-items-center justify-content-center mt-3 mb-3">
-                <div class="col-12 text-end progress-label">اكتملت</div>
-                <div class="col-10">
-                    <div class="custom-progress">
-                        <div class="progress-bar" style="width: 75%; background:#00A63E;"></div>
-                    </div>
-                </div>
-                <div class="col-2 text-end percentage">75%</div>
+        
+        <!-- Stats Cards -->
+        <div class="row mt-3">
+          <div class="col-lg-4 col-md-6 mt-2">
+            <div class="stats-card">
+              <div class="total">
+                <i class="fa-solid fa-car"></i>
+                <h5>إجمالي الرحلات</h5>
+                <h6>{{ driver.totalTrips | number }} رحلة</h6>
+              </div>
             </div>
+          </div>
 
-            <!-- 50% -->
-            <div class="row align-items-center justify-content-center mb-3">
-                <div class="col-12 text-end progress-label" style="color:var(--second-color);">قيد التشغيل</div>
-                <div class="col-10">
-                    <div class="custom-progress">
-                        <div class="progress-bar" style="width: 50%; background:var(--second-color);"></div>
-                    </div>
-                </div>
-                <div class="col-2 text-end percentage" style="color:var(--second-color);">50%</div>
+          <div class="col-lg-4 col-md-6 mt-2">
+            <div class="stats-card">
+              <div class="total">
+                <i class="fa-solid fa-users"></i>
+                <h5>إجمالي الأرباح</h5>
+                <h6>{{ driver.totalEarning | number }} ج.م</h6>
+              </div>
             </div>
+          </div>
 
-            <!-- 15% -->
-            <div class="row align-items-center justify-content-center mb-1">
-                <div class="col-12 text-end progress-label" style="color:#F90C0C;">إلغاء</div>
-                <div class="col-10">
-                    <div class="custom-progress">
-                        <div class="progress-bar" style="width: 15%; background:#F90C0C;"></div>
-                    </div>
-                </div>
-                <div class="col-2 text-end percentage" style="color:#F90C0C;">15%</div>
+          <div class="col-lg-4 col-md-6 mt-2">
+            <div class="stats-card">
+              <div class="total">
+                <i class="fa-solid fa-user-tie"></i>
+                <h5>إجمالي المستحقات</h5>
+                <h6>{{driver.totalAppDebt }} ج.م</h6>
+              </div>
             </div>
+          </div>
         </div>
+
+
+        <!-- الجدول والفلتر -->
+        <div class="content mt-2">
+          <div class="cardParent">
+            <div class="card-header">
+              <div class="row justify-content-between align-items-center">
+                <div class="col-md-6">
+                  <h3 class="customer-title">تقرير رحلات السائقين</h3>
+                </div>
+              </div>
+            </div>
+
+            <!-- الجدول -->
+            <div class="card-body custom-table">
+              <div class="table-responsive custom-table position-relative mb-4">
+                <!-- Spinner فوق الجدول (overlay) -->
+                @if (loading) {
+                <div
+                  class="position-absolute top-50 start-50 translate-middle z-3 bg-white bg-opacity-75 w-100 h-100 d-flex align-items-center justify-content-center rounded">
+                  <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">جاري التحميل...</span>
+                  </div>
+                </div>
+                }
+
+                <table class="table custom-table-design text-center mb-0">
+                  <thead>
+                    <tr>
+                      <th>تاريخ</th>
+                      <th>قيمة الرحلة</th>
+                      <th>أرباح السائق</th>
+                      <th>نسبة زيكو</th>
+                      <th>موقع الالتقاط</th>
+                      <th>موقع التوصيل</th>
+                      <th>الحالة</th>
+                      <th>نوع السيارة</th>
+                      <th>المسافة</th>
+                      <th>المدة</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (trip of trips; track trip.reportId; let i = $index) {
+                    <tr>
+                      <td>{{ formatDate(trip.createdAt) }}</td>
+                      <td>{{ trip.tripAmount | number:'1.2-2' }}</td>
+                      <td>{{ trip.driverEarning | number:'1.2-2' }}</td>
+                      <td>{{ trip.appDebt | number:'1.2-2' }}</td>
+                      <td>
+                        {{ getAddressWithoutCode(trip.pickupLocation) }}
+                      </td>
+
+                      <td>
+                        {{ getAddressWithoutCode(trip.dropoffLocation) }}
+                      </td>
+                      <td>
+                        <span class="badge" [ngClass]="{
+              'bg-success': trip.status === 'Completed',
+              'bg-warning': trip.status === 'OfferAccepted',
+              'bg-danger': trip.status !== 'Completed' && trip.status !== 'OfferAccepted'
+            }">
+                          @switch (trip.status) {
+                          @case ('Completed') { مكتملة }
+                          @case ('OfferAccepted') { العرض مقبول }
+                          @case ('Cancelled') { ملغاة }
+                          @default { {{ trip.status }} }
+                          }
+                        </span>
+                      </td>
+                      <td>{{ trip.carType }}</td>
+                      <td>{{ trip.totalDistanceKm || '-' }}</td>
+                      <td>{{ trip.estimatedDurationMinutes || '-' }}</td>
+                    </tr>
+                    }
+                    @if (trips.length === 0 && !loading) {
+                    <tr>
+                      <td colspan="11" class="text-center py-4 text-muted">لا توجد بيانات للعرض</td>
+                    </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      }@else if (!loading) {
+      <div class="alert alert-warning text-center mt-4">
+        لا توجد تقارير متاحة للسائق برقم قومي: {{ nationalId }}
+      </div>
+      }@else {
+      <div
+        class="position-absolute top-50 start-50 translate-middle z-3 bg-white bg-opacity-75 w-100 h-100 d-flex align-items-center justify-content-center rounded">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">جاري التحميل...</span>
+        </div>
+      </div>
+      }
     </div>
+  </div>
 </div>

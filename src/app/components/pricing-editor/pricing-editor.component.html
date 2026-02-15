@@ -38,7 +38,7 @@
       </div>
       }
 
-      @if (isLoading) {
+      @if (loading) {
       <div class="text-center mb-4">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">جاري التحميل...</span>
@@ -48,28 +48,77 @@
 
       <form #form="ngForm" (ngSubmit)="handleSubmit()" class="mt-1 needs-validation" novalidate>
         <div class="row">
-          <div class="col-md-12 form-section mb-3">
-            <label for="normalPricePerKm" class="form-label">السعر الاساسي لكل (كيلو متر)</label>
-            <input type="number" placeholder="ادخل السعر الاساسي" id="normalPricePerKm" class="form-control"
-              name="normalPricePerKm" required [(ngModel)]="pricing.normalPricePerKm" #normalPricePerKm="ngModel">
+          <div class="col-md-4 form-section mb-3">
+            <label for="carNormalPricePerKm" class="form-label">سعر السيارة الأساسي لكل (كيلو متر)</label>
+            <input type="number" id="carNormalPricePerKm" class="form-control" name="carNormalPricePerKm" required
+              [(ngModel)]="pricing.carNormalPricePerKm" #carNormalPricePerKm="ngModel">
             <div class="invalid-feedback">يرجى إدخال سعر اساسي صالح</div>
             <div class="valid-feedback">يبدو جيدًا!</div>
           </div>
-          <div class="col-md-12 form-section mb-3">
-            <label for="peakPricePerKm" class="form-label">سعر وقت الذروة لكل (كيلو متر)</label>
-            <input type="number" placeholder="ادخل سعر الذروة" id="peakPricePerKm" class="form-control"
-              name="peakPricePerKm" required [(ngModel)]="pricing.peakPricePerKm" #peakPricePerKm="ngModel">
+          <div class="col-md-4 form-section mb-3">
+            <label for="carPeakPricePerKm" class="form-label">سعر السيارة وقت الذروة لكل (كيلو متر)</label>
+            <input type="number" id="carPeakPricePerKm" class="form-control" name="carPeakPricePerKm" required
+              [(ngModel)]="pricing.carPeakPricePerKm" #carPeakPricePerKm="ngModel">
             <div class="invalid-feedback">يرجى إدخال سعر ذروة صالح</div>
             <div class="valid-feedback">يبدو جيدًا!</div>
           </div>
-          <div class="col-md-6 form-section mb-3">
+          <div class="col-md-4 form-section mb-3">
+            <label for="carMinimumFare" class="form-label"> الحد الادني لسعر السيارة</label>
+            <input type="number" id="carMinimumFare" class="form-control" name="carMinimumFare" required
+              [(ngModel)]="pricing.carMinimumFare" #carMinimumFare="ngModel">
+            <div class="invalid-feedback">يرجى إدخال سعر ذروة صالح</div>
+            <div class="valid-feedback">يبدو جيدًا!</div>
+          </div>
+          <div class="col-md-4 form-section mb-3">
+            <label for="motorcycleNormalPricePerKm" class="form-label">سعر الموتسكيل الأساسي لكل (كيلو متر)</label>
+            <input type="number" id="motorcycleNormalPricePerKm" class="form-control" name="motorcycleNormalPricePerKm"
+              required [(ngModel)]="pricing.motorcycleNormalPricePerKm" #motorcycleNormalPricePerKm="ngModel">
+            <div class="invalid-feedback">يرجى إدخال سعر اساسي صالح</div>
+            <div class="valid-feedback">يبدو جيدًا!</div>
+          </div>
+          <div class="col-md-4 form-section mb-3">
+            <label for="motorcyclePeakPricePerKm" class="form-label">سعر الموتسكيل وقت الذروة لكل (كيلو متر)</label>
+            <input type="number" id="motorcyclePeakPricePerKm" class="form-control" name="motorcyclePeakPricePerKm"
+              required [(ngModel)]="pricing.motorcyclePeakPricePerKm" #motorcyclePeakPricePerKm="ngModel">
+            <div class="invalid-feedback">يرجى إدخال سعر ذروة صالح</div>
+            <div class="valid-feedback">يبدو جيدًا!</div>
+          </div>
+          <div class="col-md-4 form-section mb-3">
+            <label for="motorcycleMinimumFare" class="form-label"> الحد الادني لسعر الموتسكيل</label>
+            <input type="number" id="motorcycleMinimumFare" class="form-control" name="motorcycleMinimumFare" required
+              [(ngModel)]="pricing.motorcycleMinimumFare" #motorcycleMinimumFare="ngModel">
+            <div class="invalid-feedback">يرجى إدخال سعر ذروة صالح</div>
+            <div class="valid-feedback">يبدو جيدًا!</div>
+          </div>
+          <div class="col-md-4 form-section mb-3">
+            <label for="deliveryNormalPricePerKm" class="form-label">سعر الدليفري الأساسي لكل (كيلو متر)</label>
+            <input type="number" id="deliveryNormalPricePerKm" class="form-control" name="deliveryNormalPricePerKm"
+              required [(ngModel)]="pricing.deliveryNormalPricePerKm" #deliveryNormalPricePerKm="ngModel">
+            <div class="invalid-feedback">يرجى إدخال سعر اساسي صالح</div>
+            <div class="valid-feedback">يبدو جيدًا!</div>
+          </div>
+          <div class="col-md-4 form-section mb-3">
+            <label for="deliveryPeakPricePerKm" class="form-label">سعر الدليفري وقت الذروة لكل (كيلو متر)</label>
+            <input type="number" id="deliveryPeakPricePerKm" class="form-control" name="deliveryPeakPricePerKm" required
+              [(ngModel)]="pricing.deliveryPeakPricePerKm" #deliveryPeakPricePerKm="ngModel">
+            <div class="invalid-feedback">يرجى إدخال سعر ذروة صالح</div>
+            <div class="valid-feedback">يبدو جيدًا!</div>
+          </div>
+          <div class="col-md-4 form-section mb-3">
+            <label for="deliveryMinimumFare" class="form-label"> الحد الادني لسعر الدليفري</label>
+            <input type="number" id="deliveryMinimumFare" class="form-control" name="deliveryMinimumFare" required
+              [(ngModel)]="pricing.deliveryMinimumFare" #deliveryMinimumFare="ngModel">
+            <div class="invalid-feedback">يرجى إدخال سعر ذروة صالح</div>
+            <div class="valid-feedback">يبدو جيدًا!</div>
+          </div>
+          <div class="col-md-4 form-section mb-3">
             <label for="peakStart" class="form-label"> توقيت بداية الذروة</label>
             <input type="time" id="peakStart" class="form-control" name="peakStart" required
               [(ngModel)]="pricing.peakStart" #peakStart="ngModel">
             <div class="invalid-feedback">يرجى إدخال بداية الذروة</div>
             <div class="valid-feedback">يبدو جيدًا!</div>
           </div>
-          <div class="col-md-6 form-section mb-3">
+          <div class="col-md-4 form-section mb-3">
             <label for="peakEnd" class="form-label"> توقيت نهاية الذروة</label>
             <input type="time" id="peakEnd" class="form-control" name="peakEnd" required [(ngModel)]="pricing.peakEnd"
               #peakEnd="ngModel">
@@ -79,12 +128,29 @@
         </div>
         <div class="d-flex justify-content-center">
           <button type="submit" class="btn btn-save">
-             @if (isLoading) {
+            @if (isLoading) {
             <span class="spinner-border spinner-border-sm me-2"></span>
             } حفظ التغييرات
           </button>
         </div>
       </form>
+
+      <!------------------stats-card------------------->
+      <div class="row g-4 mt-2">
+        <h3 class="text-center">الاسعار الحالية</h3>
+        <!-- CARD 1 -->
+        @for (card of statsCards; track card.title) {
+        <div class="col-lg-3 col-md-6">
+          <div class="stats-card">
+            <div class="text-center">
+              <div class="icon-box"><i class="{{ card.icon }}"></i></div>
+              <div class="title">{{ card.title }}</div>
+              <div class="value"> {{ card.value }}</div>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
     </div>
   </div>
 </div>

@@ -2,29 +2,8 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
-
-interface DriverDetail {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  carImgUrl: string;
-  carModel: string;
-  carNumber: string;
-  carYear: string;
-  carColor: string;
-  carType: string;
-  profitPercentage: string;
-  debt: string;
-  averageRating: string;
-  isActive: boolean;
-  licenseImageUrl: string;
-  expiryDate: string;
-  licenseNumber: string;
-  nationalIdImageUrl: string;
-  nationalId: string;
-}
+import { FormsModule } from '@angular/forms';
+import { DriverDetail } from '../../../types/driver.type';
 
 interface Document {
   title: string;
@@ -37,7 +16,7 @@ interface Document {
 @Component({
   selector: 'app-driver-approvals',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './driver-approvals.component.html',
   styleUrl: './driver-approvals.component.scss',
 })
@@ -46,10 +25,15 @@ export class DriverApprovalsComponent implements OnInit {
   noDriverMessage: string | null = null;
   DriverMessage: string | null = null;
 
+  newProfitPercentage: number | null = null;
+  loadingPercentage = false;
+  percentageSuccessMsg: string | null = null;
+  percentageErrorMsg: string | null = null;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private route: ActivatedRoute,
-    private api: ApiService
+    private api: ApiService,
   ) {}
 
   // دالة لعرض الصورة في الـ modal
@@ -148,7 +132,7 @@ export class DriverApprovalsComponent implements OnInit {
           this.DriverMessage = 'تم قبول السائق بنجاح';
           setTimeout(() => {
             this.DriverMessage = null;
-             this.loadDriverDetails(id);
+            this.loadDriverDetails(id);
           }, 2000);
           this.loading = false;
           this.cdr.detectChanges();
@@ -164,5 +148,61 @@ export class DriverApprovalsComponent implements OnInit {
         },
       });
     }
+  }
+
+  // ------------------- داخل الكلاس -------------------
+
+  prepareEditPercentage() {
+    this.newProfitPercentage = this.driver?.profitPercentage
+      ? parseFloat(this.driver.profitPercentage)
+      : null;
+    this.percentageSuccessMsg = null;
+    this.percentageErrorMsg = null;
+  }
+
+  updateDriverPercentage() {
+    if (!this.driver?.id || this.newProfitPercentage === null) return;
+
+    this.loadingPercentage = true;
+    this.percentageSuccessMsg = null;
+    this.percentageErrorMsg = null;
+
+    this.api
+      .updatePercentage(this.driver.id, this.newProfitPercentage)
+      .subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.percentageSuccessMsg =
+              res.message || 'تم تحديث نسبة الربح بنجاح';
+
+            // تحديث العرض مباشرة
+            if (this.driver) {
+              this.driver.profitPercentage =
+                this.newProfitPercentage!.toFixed(2);
+            }
+
+            // إغلاق المودال بعد 1.8 ثانية تقريباً
+            setTimeout(() => {
+              const modal = document.getElementById('editPercentageModal');
+              if (modal) {
+                // @ts-ignore
+                bootstrap.Modal.getInstance(modal)?.hide();
+              }
+              this.loadingPercentage = false;
+              this.newProfitPercentage = null;
+              this.percentageSuccessMsg = null;
+            }, 1800);
+          }
+        },
+        error: (err) => {
+          this.percentageErrorMsg = err.message || 'حدث خطأ أثناء تحديث النسبة';
+          this.loadingPercentage = false;
+        },
+      });
+  }
+
+  formatDate(date: string | undefined): string {
+    if (!date) return 'غير متوفر';
+    return date.split('T')[0];
   }
 }

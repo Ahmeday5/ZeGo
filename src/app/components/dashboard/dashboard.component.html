@@ -72,33 +72,59 @@
       <div class="col-12">
         <div class="Previous-trips">
           <div class="title">
-            <h4>الرحلات السابقة</h4>
+            <h4>الرحلات اخر 24 ساعة</h4>
           </div>
-          @if (lastTrips && lastTrips.length > 0) {
-          @for (last of lastTrips; track last.id) {
-          <div class="trip d-flex justify-content-between align-items-center">
-            <div class="row">
-              <div class="icons w-auto p-0 d-flex align-items-center">
-                <i class="fa fa-check-circle"></i>
+
+          @if (loading) {
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+          </div>
+          } @else if (lastTrips && lastTrips.length > 0) {
+          @for (trip of lastTrips; track trip.tripId) {
+          <div class="trip d-flex justify-content-between align-items-center flex-wrap">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              <div class="icon-circle bg-light rounded-circle d-none d-sm-block">
+                <i class="fa fa-check-circle text-success fs-3"></i>
               </div>
-              <div class="content w-auto">
-                <h6 class="mb-1">
-                  رحلة {{ last.id }}
-                  <span class="badge rounded-pill px-2" [style.background-color]="getStatusColor(last.status)"
-                    style="color: white; font-size: 0.8rem;">
-                    {{ getStatusInArabic(last.status) }}
+              <div>
+                <h6 class="mb-1 fw-bold d-flex align-items-center gap-2">
+                  رحلة رقم {{ trip.tripId }}
+                  <span class="badge rounded-pill px-3 py-2" [style.backgroundColor]="getStatusColor(trip.status)">
+                    {{ getStatusInArabic(trip.status) }}
                   </span>
-                  - {{ last.proposedPrice | number:'1.0-2' }} جنيه
+                  <span class="text-muted ms-2">{{ trip.proposedPrice | number:'1.0-2' }} ج.م</span>
+
+                  <!-- زرار العين هنا -->
+                  <i class="fa-regular fa-eye text-primary ms-3 fs-5 cursor-pointer"
+                    (click)="viewTripDetails(trip.tripId)" title="عرض تفاصيل الرحلة" style="cursor: pointer;"></i>
                 </h6>
-                <h6>{{last.timeAgo}}</h6>
+                <div class="small text-muted">
+                  {{ trip.timeAgo }}
+                  @if (trip.client.name) { • العميل: {{ trip.client.name }} }
+                  @if (trip.driver?.name) { • السائق: {{ trip.driver?.name }} }
+                  @if (trip.offerCount > 0) { • عروض: {{ trip.offerCount }} }
+                </div>
               </div>
             </div>
-            <div class="dots"></div>
+            <div class="dots d-none d-sm-block"></div>
           </div>
           }
-          }@else {
-          <div class="text-center text-muted">لا توجد رحلات سابقة</div>
+          } @else {
+          <div class="text-center text-muted py-5">
+            لا توجد رحلات في الفترة الحالية
+          </div>
           }
+
+          <!-- الباجنيشن -->
+          <div class="mt-4 text-center">
+            <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" [windowSize]="2"
+              (pageChange)="onPageChange($event)">
+            </app-pagination>
+          </div>
+
+          <div class="text-center text-muted small mt-2" *ngIf="totalCount > 0">
+            عرض {{ lastTrips.length }} من {{ totalCount }} رحلة
+          </div>
         </div>
       </div>
     </div>

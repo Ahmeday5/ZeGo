@@ -5,9 +5,14 @@ import { ApiService } from '../../services/api.service';
 import {
   DashboardSummaryResponse,
   DashboardSummaryData,
-  DashboardlastTripsData,
   DashboardTripsStatusData,
+  LastTripItem,
+  PaginationInfo,
 } from '../../types/dashboard.type';
+import { PaginationComponent } from '../../layout/pagination/pagination.component';
+import { HttpParams } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { Location } from '@angular/common';
 
 interface StatsCard {
   title: string;
@@ -24,7 +29,7 @@ interface tripsStatusCards {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, PaginationComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -37,13 +42,24 @@ export class DashboardComponent {
 
   // الداتا اللي جاية من الـ API
   summaryData: DashboardSummaryData | null = null; // دي برتجع اوبجكت واحد
-  lastTrips: DashboardlastTripsData[] = []; // دي بترجع اري جواه اوبجكت
+  lastTrips: LastTripItem[] = [];
+  // متغيرات الـ pagination (نفس طريقة ListDrivers)
+  totalCount = 0;
+  totalPages = 0;
+  currentPage = 1;
+  pageSize = 5;
+
   TripsStatus: DashboardTripsStatusData[] = []; // دي بترجع اري جواه اوبجكت
   // الكروت اللي هتتعرض في الـ HTML
   statsCards: StatsCard[] = [];
   TripsStatusCards: tripsStatusCards[] = [];
 
-  constructor(private apiService: ApiService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private apiService: ApiService,
+    private cdr: ChangeDetectorRef,
+    private router: Router, // ← أضف ده
+    private location: Location,
+  ) {}
 
   ngOnInit(): void {
     this.fetchSummary();
@@ -133,22 +149,30 @@ export class DashboardComponent {
     this.loading = true;
     this.nolastTripsMessage = null;
 
-    this.apiService.getLastTrips().subscribe({
-      next: (data: DashboardlastTripsData[]) => {
-        console.log('API Data:', data);
+    this.apiService.getLastTrips(this.pageSize, this.currentPage).subscribe({
+      next: (data) => {
+        this.lastTrips = data.items || [];
 
-        this.lastTrips = data;
+        this.totalCount = data.pagination?.totalCount || 0;
+        this.totalPages = data.pagination?.totalPages || 1;
+        this.currentPage = data.pagination?.pageIndex || 1;
 
         this.loading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('خطأ في جلب اخر رحلات:', err);
-        this.nolastTripsMessage = 'فشل جلب اخر رحلات، تأكد من الاتصال';
+        console.error('خطأ في جلب الرحلات', err);
+        this.nolastTripsMessage = 'فشل جلب آخر الرحلات';
         this.loading = false;
         this.cdr.detectChanges();
       },
     });
+  }
+
+  onPageChange(page: number) {
+    if (page === this.currentPage) return;
+    this.currentPage = page;
+    this.fetchLastTrips();
   }
 
   // استدعاء حالة رحلات
@@ -176,5 +200,15 @@ export class DashboardComponent {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  viewTripDetails(tripId: number) {
+    this.router.navigate(['/last-trip', tripId]);
+    // أو لو عايز تضيف child route تحت dashboard:
+    // this.router.navigate(['/dashboard/last-trip', tripId]);
+  }
+
+  goBack() {
+    this.location.back();
   }
 }

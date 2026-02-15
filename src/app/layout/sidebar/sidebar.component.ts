@@ -23,7 +23,10 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   isSidebarOpen: boolean = window.innerWidth > 992;
 
   // حقن Router و AuthService
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+  ) {}
 
   // التهيئة عند تحميل الكومبوننت
   ngOnInit(): void {
@@ -45,8 +48,10 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 
   // دالة تسجيل الخروج
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/']);
+    if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+      this.authService.logout();
+      this.router.navigate(['/']);
+    }
   }
 
   // دالة للتحقق إذا كان العنصر هو زر تسجيل الخروج
@@ -104,6 +109,12 @@ export class SidebarComponent implements OnInit, AfterViewInit {
       path: '/Notification', // أو أي path عندك
       iconActive: 'fas fa-envelope text-primary',
       iconInactive: 'far fa-envelope',
+    },
+    {
+      label: 'جهات الاتصال',
+      path: '/contents', // أو أي path عندك
+      iconActive: 'fas fa-headset text-success',
+      iconInactive: 'fas fa-headset',
     },
     {
       label: 'تسجيل الخروج',

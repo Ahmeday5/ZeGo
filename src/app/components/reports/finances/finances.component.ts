@@ -2,7 +2,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
 import { ApiService } from '../../../services/api.service';
@@ -12,11 +12,19 @@ import {
   ReportTotals,
 } from '../../../types/reports.type';
 import { PaginationComponent } from '../../../layout/pagination/pagination.component';
+import { Router, RouterModule } from '@angular/router';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-finances',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    PaginationComponent,
+    FormsModule,
+    RouterModule,
+  ],
   templateUrl: './finances.component.html',
   styleUrl: './finances.component.scss',
 })
@@ -24,9 +32,11 @@ export class FinancesComponent implements OnInit {
   drivers: DriverReport[] = [];
   totals: ReportTotals = {
     totalEarnings: 0,
+    totalDeps: 0,
     totalTrips: 0,
-    totalDrivers: 0,
     totalClients: 0,
+    totalDriversInResult: 0,
+    totalActiveDriversInCurrentPage: 0,
   };
 
   loading = true;
@@ -35,6 +45,8 @@ export class FinancesComponent implements OnInit {
   totalPages = 0;
   totalItems = 0;
   showFilter = false;
+
+  private driverNameSearchSubject = new Subject<string>();
 
   // سنوات من 2020 لـ 2026
   years = Array.from({ length: 30 }, (_, i) => 2024 + i);
@@ -55,14 +67,49 @@ export class FinancesComponent implements OnInit {
 
   filterForm: FormGroup;
 
-  constructor(private reportsService: ApiService, private fb: FormBuilder) {
+  constructor(
+    private reportsService: ApiService,
+    private fb: FormBuilder,
+    private router: Router,
+  ) {
     this.filterForm = this.fb.group({
       filterType: ['yearly'],
       year: [new Date().getFullYear()],
       month: [new Date().getMonth() + 1],
       driverName: [''],
-      nationalId: [''],
     });
+
+    // إعداد البحث الفوري مع تأخير (debounce)
+    this.driverNameSearchSubject
+      .pipe(
+        debounceTime(400), // انتظر 400 مللي ثانية بعد آخر كتابة
+        distinctUntilChanged(), // لا تبعت نفس القيمة مرتين
+      )
+      .subscribe((searchTerm) => {
+        this.applyDriverNameFilter(searchTerm);
+      });
+  }
+
+  // دالة تُستدعى عند كل input
+  onDriverNameInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value.trim();
+    this.driverNameSearchSubject.next(value);
+  }
+
+  // دالة تقوم بالفلترة الفعلية
+  applyDriverNameFilter(searchTerm: string): void {
+    // إعادة تعيين الصفحة للأولى عند البحث
+    this.currentPage = 1;
+
+    // تحديث قيمة الحقل في الفورم (اختياري - عشان يظل متزامن)
+    this.filterForm.patchValue(
+      { driverName: searchTerm },
+      { emitEvent: false },
+    );
+
+    // تنفيذ البحث
+    this.loadReports(1);
   }
 
   ngOnInit(): void {
@@ -89,31 +136,26 @@ export class FinancesComponent implements OnInit {
     }
     if (f.driverName?.trim())
       params = params.set('driverName', f.driverName.trim());
-    if (f.nationalId?.trim())
-      params = params.set('nationalId', f.nationalId.trim());
 
     this.reportsService.getAllreports(params).subscribe({
       next: (res: ReportsApiResponse) => {
         this.drivers = res.data.data;
         this.totals = res.data.totals;
-
         this.currentPage = res.data.page;
         this.totalPages = res.data.totalPages;
         this.totalItems = res.data.totalItems;
-
         this.loading = false;
       },
-      error: () => {
+      error: (err) => {
+        console.error('API Error:', err);
         this.drivers = [];
-        this.totals = {
-          totalEarnings: 0,
-          totalTrips: 0,
-          totalDrivers: 0,
-          totalClients: 0,
-        };
         this.loading = false;
       },
     });
+  }
+
+  viewDriverDetails(nationalId: string): void {
+    this.router.navigate(['finances-driver', nationalId]);
   }
 
   toggleFilter(): void {
@@ -170,7 +212,7 @@ export class FinancesComponent implements OnInit {
     const a = document.createElement('a');
     a.href = url;
     a.download = `تقرير_أرباح_السائقين_${new Date().toLocaleDateString(
-      'ar-EG'
+      'ar-EG',
     )}.csv`;
     a.click();
     URL.revokeObjectURL(url);

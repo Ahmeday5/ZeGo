@@ -99,7 +99,6 @@
 
   <!-- الجدول + Loading Overlay -->
   <div class="card-body custom-table position-relative mb-4">
-
     @if (loading) {
     <div
       class="position-absolute top-50 start-50 translate-middle z-3 bg-white bg-opacity-75 w-100 h-100 d-flex align-items-center justify-content-center rounded">
@@ -147,9 +146,18 @@
               <i class="fa-solid fa-ban text-danger fa-lg mx-2 cursor-pointer" title="حظر" style="cursor: pointer;"
                 (click)="deactivatedDriver(driver.id)"></i>
               }@else {
-              <i class="fa-solid fa-user-check text-success fa-lg cursor-pointer" style="cursor: pointer;" title="تفعيل"
-                (click)="activatedDriver(driver.id)"></i>
+              <i clas s="fa-solid fa-user-check text-success fa-lg cursor-pointer" style="cursor: pointer;"
+                title="تفعيل" (click)="activatedDriver(driver.id)"></i>
               }
+              <!-- زر إعادة تعيين كلمة المرور -->
+              <i class="fa-solid fa-key text-warning fa-lg mx-2 cursor-pointer" title="إعادة تعيين كلمة المرور"
+                style="cursor: pointer;" (click)="openResetPasswordModal(driver.id, driver.name)">
+              </i>
+              <i class="fa-solid fa-pen-to-square text-primary fa-lg cursor-pointer mx-2" title="تعديل"
+                style="cursor: pointer;" (click)="openEditDriverModal(driver.id)">
+              </i>
+              <i class="fa-solid fa-trash text-danger fa-lg cursor-pointer" style="cursor: pointer;" title="حذف"
+                (click)="deleteDriver(driver.id)"></i>
             </td>
           </tr>
           }
@@ -165,4 +173,206 @@
 
   <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" [windowSize]="1"
     (pageChange)="onPageChange($event)"></app-pagination>
+
+    @if (showEditDriverModal) {
+  <div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+
+        <div class="modal-header d-flex justify-content-between">
+          <h5 class="modal-title">
+            <i class="fa-solid fa-pen-to-square me-2"></i>
+            تعديل بيانات السائق
+          </h5>
+          <button type="button" class="btn-close" (click)="closeEditDriverModal()"></button>
+        </div>
+
+        <div class="modal-body">
+          <form [formGroup]="editDriverForm" enctype="multipart/form-data">
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">الاسم</label>
+                <input type="text" class="form-control" formControlName="name" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">التليفون</label>
+                <input type="text" class="form-control" formControlName="phone" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">العنوان</label>
+                <input type="text" class="form-control" formControlName="address" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">رقم الرخصة</label>
+                <input type="text" class="form-control" formControlName="licenseNumber" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">تاريخ انتهاء الرخصة</label>
+                <input type="date" class="form-control" formControlName="expiryDate" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">الرقم القومي</label>
+                <input type="text" class="form-control" formControlName="nationalId" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">نوع السيارة</label>
+                <select class="form-select" formControlName="carType">
+                  <option value="Car">سيارة</option>
+                  <option value="Motorcycle">موتوسيكل</option>
+                  <option value="Delivery">ديليفري</option>
+                </select>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">موديل السيارة</label>
+                <input type="text" class="form-control" formControlName="carModel" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">سنة السيارة</label>
+                <input type="text" class="form-control" formControlName="carYear" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">رقم السيارة</label>
+                <input type="text" class="form-control" formControlName="carNumber" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">لون السيارة</label>
+                <input type="text" class="form-control" formControlName="carColor" />
+              </div>
+
+              <!-- رفع الملفات -->
+              <div class="col-md-6 mb-3">
+                <label class="form-label">صورة الملف الشخصي</label>
+                <input type="file" class="form-control" (change)="onFileChange($event, 'ProfileImage')" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">صورة رخصة القيادة</label>
+                <input type="file" class="form-control" (change)="onFileChange($event, 'LicenseImage')" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">صورة البطاقة القومية</label>
+                <input type="file" class="form-control" (change)="onFileChange($event, 'NationalIdImage')" />
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">صورة السيارة</label>
+                <input type="file" class="form-control" (change)="onFileChange($event, 'CarImage')" />
+              </div>
+
+            </div>
+
+            <div *ngIf="editDriverErrorMessage" class="alert alert-danger">
+              {{ editDriverErrorMessage }}
+            </div>
+
+            <div class="d-flex justify-content-center gap-2 mt-4">
+              <button type="button" class="btn btn-save" [disabled]="editDriverLoading"
+                      (click)="submitEditDriver()">
+                <span *ngIf="editDriverLoading" class="spinner-border spinner-border-sm me-2"></span>
+                حفظ التعديلات
+              </button>
+              <button type="button" class="btn btn-cansel" (click)="closeEditDriverModal()"
+                      [disabled]="editDriverLoading">
+                إلغاء
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+
+
+  <!-- Reset Password Modal -->
+  @if (showResetPasswordModal) {
+  <div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-warning">
+
+        <div class="modal-header bg-warning-subtle d-flex justify-content-between">
+          <h5 class="modal-title text-warning">
+            <i class="fa-solid fa-key me-2"></i>
+            إعادة تعيين كلمة مرور السائق
+          </h5>
+          <button type="button" class="btn-close m-0  " (click)="closeResetPasswordModal()"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <p class="mb-3">
+            السائق: <strong>{{ selectedDriverName || '—' }}</strong>
+          </p>
+
+          <form [formGroup]="resetPasswordForm">
+
+            <div class="mb-3">
+              <label class="form-label">كلمة المرور الجديدة</label>
+              <input type="password" class="form-control" formControlName="newPassword"
+                placeholder="أدخل كلمة مرور قوية (8 أحرف على الأقل)">
+              @if (resetPasswordForm.get('newPassword')?.touched &&
+              resetPasswordForm.get('newPassword')?.hasError('required')) {
+              <small class="text-danger">كلمة المرور مطلوبة</small>
+              }
+              @if (resetPasswordForm.get('newPassword')?.touched &&
+              resetPasswordForm.get('newPassword')?.hasError('minlength')) {
+              <small class="text-danger">كلمة المرور يجب أن تكون 8 أحرف على الأقل</small>
+              }
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">تأكيد كلمة المرور</label>
+              <input type="password" class="form-control" formControlName="confirmPassword"
+                placeholder="أعد إدخال كلمة المرور">
+              @if (resetPasswordForm.get('confirmPassword')?.touched) {
+              @if (resetPasswordForm.get('confirmPassword')?.hasError('required')) {
+              <small class="text-danger">تأكيد كلمة المرور مطلوب</small>
+              }
+              @if (resetPasswordForm.get('confirmPassword')?.hasError('mismatch')) {
+              <small class="text-danger">كلمتا المرور غير متطابقتين</small>
+              }
+              }
+            </div>
+
+            @if (resetErrorMessage) {
+            <div class="alert alert-danger">
+              {{ resetErrorMessage }}
+            </div>
+            }
+
+            <div class="d-grid gap-2 mt-4">
+              <button class="btn btn-warning" type="button" [disabled]="resetPasswordForm.invalid || resetLoading"
+                (click)="resetDriverPasswordSubmit()">
+                @if (resetLoading) {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                جاري التنفيذ...
+                } @else {
+                تأكيد وإعادة تعيين
+                }
+              </button>
+              <button class="btn btn-outline-secondary" type="button" (click)="closeResetPasswordModal()"
+                [disabled]="resetLoading">
+                إلغاء
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
 </div>

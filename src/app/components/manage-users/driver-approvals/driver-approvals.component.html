@@ -59,16 +59,20 @@
           <div class="col-md-6">
             <div class="content">
               <h6><span>الاسم :</span> {{ driver?.name }}</h6>
-              <h6><span>الايميل :</span> {{ driver?.email }}</h6>
               <h6><span>رقم الهاتف :</span> {{ driver?.phone }}</h6>
               <h6><span>العنوان :</span> {{ driver?.address }}</h6>
               <h6><span>تفاصيل السيارة :</span> {{ driver?.carModel }} - {{ driver?.carNumber }} - {{ driver?.carYear }}
                 -
                 {{ driver?.carColor }}</h6>
               <h6><span>نوع السيارة :</span> {{ driver?.carType }}</h6>
-              <h6><span>نسبة الربح :</span> {{ driver?.profitPercentage }}</h6>
+              <h6><span>نسبة الربح :</span> %{{ driver?.profitPercentage }}</h6>
+              <button class="btn btn-sm mb-2 edit-percentage-btn" data-bs-toggle="modal"
+                data-bs-target="#editPercentageModal" (click)="prepareEditPercentage()">
+                تعديل النسبة <i class="fa-solid fa-pen-to-square ms-1"></i>
+              </button>
               <h6><span> المبلغ المستحق علي السائق :</span> {{ driver?.debt }}</h6>
               <h6><span> متوسط التقييم :</span> {{ driver?.averageRating }}</h6>
+              <h6><span> تاريخ الانشاء :</span> {{ formatDate(driver?.createdAt) }}</h6>
               <h6><span>الحالة :</span> {{ driver?.isActive ? 'نشط' : 'غير نشط' }}</h6>
             </div>
           </div>
@@ -139,6 +143,88 @@
             <button class="btn btn-accept" type="submit" (click)="activatedDriver(driverId)"> قبول <i
                 class="fa fa-check"></i></button>
             }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--               مودال تعديل النسبة            -->
+    <div class="modal fade" id="editPercentageModal" tabindex="-1" aria-labelledby="editPercentageModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+
+          <!-- Header -->
+          <div class="modal-header bg-header text-white" style="border-bottom: none;">
+            <h5 class="modal-title fw-bold" id="editPercentageModalLabel">
+              تعديل نسبة ربح السائق
+            </h5>
+          </div>
+
+          <!-- Body -->
+          <div class="modal-body p-4">
+
+            <!-- عرض اسم السائق -->
+            <div class="text-center mb-4">
+              <h6 class="text-muted">السائق</h6>
+              <h5 class="fw-bold">{{ driver?.name }}</h5>
+            </div>
+
+            <!-- النسبة الحالية -->
+            <div class="current-percentage mb-4 p-3 bg-light rounded text-center">
+              النسبة الحالية:
+              <span class="fs-4 fw-bold text-primary">{{ driver?.profitPercentage }}%</span>
+            </div>
+
+            <!-- Form -->
+            <form #percentageForm="ngForm">
+              <div class="mb-3">
+                <label for="newPercentage" class="form-label fw-bold">النسبة الجديدة (%)</label>
+                <div class="input-group input-group-lg">
+                  <input type="number" class="form-control text-center" id="newPercentage" name="newPercentage"
+                    [(ngModel)]="newProfitPercentage" min="1" max="100" step="0.1" required #newPerc="ngModel"
+                    [class.is-invalid]="newPerc.touched && newPerc.invalid" placeholder="مثال: 25" />
+                  <span class="input-group-text">%</span>
+                </div>
+                @if (newPerc.touched && (newPerc.errors?.['required'] || newPerc.errors?.['min'] ||
+                newPerc.errors?.['max'])) {
+                <div class="invalid-feedback d-block text-center">
+                  أدخل نسبة بين 1 و 100
+                </div>
+                }
+              </div>
+
+              <!-- رسائل نجاح / خطأ داخل المودال -->
+              @if (percentageSuccessMsg) {
+              <div class="alert alert-success d-flex align-items-center mt-3" role="alert">
+                <i class="fa-solid fa-circle-check me-2"></i>
+                {{ percentageSuccessMsg }}
+              </div>
+              }
+              @if (percentageErrorMsg) {
+              <div class="alert alert-danger d-flex align-items-center mt-3" role="alert">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                {{ percentageErrorMsg }}
+              </div>
+              }
+            </form>
+          </div>
+
+          <!-- Footer -->
+          <div class="modal-footer bg-light border-0 justify-content-center pb-4">
+            <button type="button" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal">
+              إلغاء
+            </button>
+            <button type="button" class="btn btn-lg edit-percentage-btn"
+              [disabled]="loadingPercentage || !newProfitPercentage || newProfitPercentage < 0 || newProfitPercentage > 100"
+              (click)="updateDriverPercentage()">
+              @if (loadingPercentage) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              جاري الحفظ...
+              } @else {
+              حفظ التغييرات
+              }
+            </button>
           </div>
         </div>
       </div>

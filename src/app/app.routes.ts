@@ -16,6 +16,8 @@ import { AllAdminComponent } from './components/admins/all-admin/all-admin.compo
 import { UpdateAdminComponent } from './components/admins/update-admin/update-admin.component';
 import { AddAdminComponent } from './components/admins/add-admin/add-admin.component';
 import { NotificationComponent } from './components/notification/notification.component';
+import { ContentsComponent } from './components/contents/contents.component';
+import { LastTripsDetailsComponent } from './components/last-trips-details/last-trips-details.component';
 
 export const routes: Routes = [
   {
@@ -31,7 +33,7 @@ export const routes: Routes = [
               return router.createUrlTree(['/dashboard']);
             }
             return true;
-          })
+          }),
         );
       },
     ],
@@ -41,6 +43,12 @@ export const routes: Routes = [
     path: 'dashboard',
     component: DashboardComponent,
     title: 'اللوحة الرئيسية',
+    canActivate: [canActivate],
+  },
+  {
+    path: 'last-trip/:tripId',
+    component: LastTripsDetailsComponent,
+    title: 'تفاصيل الرحلة',
     canActivate: [canActivate],
   },
   {
@@ -81,6 +89,12 @@ export const routes: Routes = [
     canActivate: [canActivate],
   },
   {
+    path: 'finances-driver/:nationalId',
+    component: PricePerformanceComponent,
+    title: 'تقارير رحلات سائق',
+    canActivate: [canActivate],
+  },
+  {
     path: 'Pricing-editor',
     component: PricingEditorComponent,
     title: 'محرر التسعير',
@@ -108,6 +122,12 @@ export const routes: Routes = [
     path: 'Notification',
     component: NotificationComponent,
     title: 'الرسائل',
+    canActivate: [canActivate],
+  },
+  {
+    path: 'contents',
+    component: ContentsComponent,
+    title: 'جهات الاتصال',
     canActivate: [canActivate],
   },
 ];

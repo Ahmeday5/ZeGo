@@ -53,7 +53,7 @@
               <div class="total">
                 <i class="fa-solid fa-user-tie"></i>
                 <h5>سائقين نشطين</h5>
-                <h6>{{ totals.totalDrivers | number }} سائق</h6>
+                <h6>{{ totals.totalActiveDriversInCurrentPage }} سائق</h6>
               </div>
             </div>
           </div>
@@ -112,6 +112,12 @@
                       </select>
                     </div>
 
+                    <div class="col-md-3">
+                      <label class="form-label">اسم السائق</label>
+                      <input type="text" formControlName="driverName" class="form-control"
+                        (input)="onDriverNameInput($event)" placeholder="اكتب اسم السائق...">
+                    </div>
+
                   </div>
 
                   <div class="d-flex justify-content-end gap-2 mt-3">
@@ -145,6 +151,7 @@
                       <th>إجمالي الرحلات</th>
                       <th>إجمالي الأيرادات</th>
                       <th>المستحقات</th>
+                      <th>عرض الرحلات</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -156,11 +163,14 @@
                       <td>{{ driver.totalTrips }}</td>
                       <td>{{ driver.totalEarning | number:'1.2-2' }} جنية</td>
                       <td>{{ driver.totalAppDebt | number:'1.2-2' }} جنية</td>
+                      <td><i class="fa-regular fa-eye text-primary fa-lg cursor-pointer"
+                          (click)="viewDriverDetails(driver.driverNationalId)" style="cursor: pointer;"></i>
+                      </td>
                     </tr>
                     }
                     @if (drivers.length === 0 && !loading) {
                     <tr>
-                      <td colspan="6" class="text-center py-4 text-muted">لا توجد بيانات للعرض</td>
+                      <td colspan="7" class="text-center py-4 text-muted">لا توجد بيانات للعرض</td>
                     </tr>
                     }
                   </tbody>

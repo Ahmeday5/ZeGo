@@ -1,3 +1,41 @@
+<!---------------------alert-------------------->
+
+<svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+  <symbol id="check-circle-fill" viewBox="0 0 16 16">
+    <path
+      d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+  </symbol>
+  <symbol id="info-fill" viewBox="0 0 16 16">
+    <path
+      d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+  </symbol>
+  <symbol id="exclamation-triangle-fill" viewBox="0 0 16 16">
+    <path
+      d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+  </symbol>
+</svg>
+
+<div class="row">
+  <div class="col-12">
+    @if (noClientMessage) {
+    <div class="mt-3 alert w-100 alert-danger d-flex align-items-center" role="alert">
+      <svg class="bi flex-shrink-0 me-2 icons-alert" role="img" aria-label="Danger:">
+        <use xlink:href="#exclamation-triangle-fill" />
+      </svg>
+      <div class="title-alert">{{ noClientMessage }}</div>
+    </div>
+    }
+
+    @if (ClientMessage) {
+    <div class="mt-3 alert w-100 alert-success d-flex align-items-center" role="alert">
+      <svg class="bi flex-shrink-0 me-2 icons-alert" role="img" id="svg" aria-label="Success:">
+        <use xlink:href="#check-circle-fill" />
+      </svg>
+      <div class="title-alert">{{ ClientMessage }}</div>
+    </div>
+    }
+  </div>
+</div>
 <div class="cardParent">
   <div class="card-header">
     <div class="row justify-content-between align-items-center">
@@ -69,18 +107,53 @@
         <thead>
           <tr>
             <th>#</th>
+            <th>الصورة</th>
             <th>الاسم</th>
             <th>التليفون</th>
-            <th>البريد الإلكتروني</th>
+            <th>تاريخ الانشاء</th>
+            <th>الحالة</th>
+            <th>الإجراءات</th>
           </tr>
         </thead>
         <tbody>
           @for (client of clients; track client.id; let i = $index) {
           <tr>
             <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+            @if (client.profileImageUrl) {
+            <td>
+              <img [src]="'https://zego.premiumasp.net' + client.profileImageUrl" alt="صورة العميل"
+                style="max-height: 30px; object-fit: cover; cursor: pointer;"
+                (click)="showImage(client.profileImageUrl)" data-bs-toggle="modal" data-bs-target="#imageModal">
+            </td>
+            }@else {
+            <td>لا يوجد صورة</td>
+            }
             <td>{{ client.name }}</td>
             <td dir="ltr">{{ client.phone }}</td>
-            <td>{{ client.email || '-' }}</td>
+            <td>{{ formatDate(client.createdAt)  }}</td>
+            <td>
+              <span class="badge {{ client.isActive ? 'bg-success' : 'bg-secondary' }}">
+                {{ client.isActive ? 'نشط' : 'غير نشط' }}
+              </span>
+            </td>
+            <td>
+              @if(client.isActive == true) {
+              <i class="fa-solid fa-ban text-danger fa-lg mx-2 cursor-pointer" title="حظر" style="cursor: pointer;"
+                (click)="deactivatedClient(client.id)"></i>
+              }@else {
+              <i class="fa-solid fa-user-check text-success fa-lg cursor-pointer" style="cursor: pointer;" title="تفعيل"
+                (click)="activatedClient(client.id)"></i>
+              }
+              <!-- زر إعادة تعيين كلمة المرور -->
+              <i class="fa-solid fa-key text-warning fa-lg mx-2 cursor-pointer" title="إعادة تعيين كلمة المرور"
+                style="cursor: pointer;" (click)="openResetPasswordModal(client.id, client.name)">
+              </i>
+              <i class="fa-solid fa-pen-to-square text-primary fa-lg mx-2" style="cursor: pointer;" title="تعديل العميل"
+                (click)="openEdit(client)"></i>
+              <i class="fa-solid fa-trash text-danger fa-lg cursor-pointer" style="cursor: pointer;" title="حذف"
+                (click)="deleteClient(client.id)"></i>
+
+            </td>
           </tr>
           }
           @empty {
@@ -91,9 +164,172 @@
         </tbody>
       </table>
     </div>
+    <!-- Modal لعرض الصورة الكبيرة -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center">
+            <img [src]="selectedImage" style="max-width: 100%; height: auto;" alt="صورة معاينة">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Pagination - استخدم الـ component الجاهز -->
   <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" [windowSize]="1"
     (pageChange)="onPageChange($event)"></app-pagination>
+
+  <!-- Edit Client Modal -->
+  @if (showEditModal) {
+  <div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+
+        <div class="modal-header d-flex justify-content-between">
+          <h5 class="modal-title">تعديل بيانات العميل</h5>
+          <button type="button" class="btn-close m-0" (click)="closeEdit()"></button>
+        </div>
+
+        <div class="modal-body position-relative">
+
+          <!-- Loading داخل المودال -->
+          @if (showEditLoading) {
+          <div class="position-absolute top-50 start-50 translate-middle z-3">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+              <span class="visually-hidden">جاري جلب البيانات...</span>
+            </div>
+          </div>
+          }
+
+          <form [formGroup]="editForm" [class.opacity-50]="showEditLoading">
+
+            <div class="mb-3 form-section">
+              <label class="form-label">الاسم</label>
+              <input type="text" class="form-control" formControlName="name">
+              <!-- validation messages -->
+            </div>
+
+            <div class="mb-3 form-section">
+              <label class="form-label">رقم التليفون</label>
+              <input type="tel" class="form-control" formControlName="phone">
+              <!-- validation messages -->
+            </div>
+
+            <div class="mb-3 form-section">
+              <label class="form-label">صورة جديدة (اختياري – سيتم استبدال القديمة)</label>
+              <input type="file" class="form-control" accept="image/*" (change)="onFileChange($event)">
+              @if (fileToUpload) {
+              <small class="text-success d-block mt-1">
+                تم اختيار: {{ fileToUpload.name }}
+              </small>
+              }
+            </div>
+
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-cansel" (click)="closeEdit()" [disabled]="showEditLoading">
+            إلغاء
+          </button>
+          <button type="button" class="btn btn-save"
+            [disabled]="editForm.invalid || loading || showEditLoading || !selectedClient" (click)="saveEdit()">
+            @if (loading) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            جاري الحفظ...
+            } @else {
+            حفظ التعديلات
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Reset Password Modal -->
+  @if (showResetPasswordModal) {
+  <div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-warning">
+
+        <div class="modal-header bg-warning-subtle d-flex justify-content-between">
+          <h5 class="modal-title text-warning">
+            <i class="fa-solid fa-key me-2"></i>
+            إعادة تعيين كلمة مرور العميل
+          </h5>
+          <button type="button" class="btn-close m-0  " (click)="closeResetPasswordModal()"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <p class="mb-3">
+            العميل: <strong>{{ selectedClientName || '—' }}</strong>
+          </p>
+
+          <form [formGroup]="resetPasswordForm">
+
+            <div class="mb-3">
+              <label class="form-label">كلمة المرور الجديدة</label>
+              <input type="password" class="form-control" formControlName="newPassword"
+                placeholder="أدخل كلمة مرور قوية (8 أحرف على الأقل)">
+              @if (resetPasswordForm.get('newPassword')?.touched &&
+              resetPasswordForm.get('newPassword')?.hasError('required')) {
+              <small class="text-danger">كلمة المرور مطلوبة</small>
+              }
+              @if (resetPasswordForm.get('newPassword')?.touched &&
+              resetPasswordForm.get('newPassword')?.hasError('minlength')) {
+              <small class="text-danger">كلمة المرور يجب أن تكون 8 أحرف على الأقل</small>
+              }
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">تأكيد كلمة المرور</label>
+              <input type="password" class="form-control" formControlName="confirmPassword"
+                placeholder="أعد إدخال كلمة المرور">
+              @if (resetPasswordForm.get('confirmPassword')?.touched) {
+              @if (resetPasswordForm.get('confirmPassword')?.hasError('required')) {
+              <small class="text-danger">تأكيد كلمة المرور مطلوب</small>
+              }
+              @if (resetPasswordForm.get('confirmPassword')?.hasError('mismatch')) {
+              <small class="text-danger">كلمتا المرور غير متطابقتين</small>
+              }
+              }
+            </div>
+
+            @if (resetErrorMessage) {
+            <div class="alert alert-danger">
+              {{ resetErrorMessage }}
+            </div>
+            }
+
+            <div class="d-grid gap-2 mt-4">
+              <button class="btn btn-warning" type="button" [disabled]="resetPasswordForm.invalid || resetLoading"
+                (click)="resetClientPasswordSubmit()">
+                @if (resetLoading) {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                جاري التنفيذ...
+                } @else {
+                تأكيد وإعادة تعيين
+                }
+              </button>
+              <button class="btn btn-outline-secondary" type="button" (click)="closeResetPasswordModal()"
+                [disabled]="resetLoading">
+                إلغاء
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
 </div>

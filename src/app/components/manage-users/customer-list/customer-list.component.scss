@@ -74,7 +74,9 @@ select:invalid {
 .btn-filter,
 .btn-filtering,
 .btn-remove {
-  transition: transform 0.2s ease, box-shadow 0.2s ease; // scale على hover
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease; // scale على hover
 }
 
 .btn-filtering {
@@ -167,4 +169,56 @@ select option:disabled {
 .img-check {
   width: 15px;
   height: 15px;
+}
+
+/*************/
+
+form {
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.form-section {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  font-weight: bold;
+  color: var(--main-color);
+}
+
+.form-control {
+  border-radius: 8px;
+  border: 2px solid var(--main-color);
+}
+
+.form-control:focus {
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 0.2rem rgba(var(--main-color-rgb), 0.25);
+}
+
+form .form-section .form-control::placeholder {
+  color: rgba(109, 105, 105, 1);
+  font-family: var(--font-arabic) !important;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 100%;
+}
+
+.btn-save {
+  background: var(--main-color);
+  color: var(--third-color);
+  font-size: 18px;
+  padding: 15px;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+.btn-cansel {
+  background: #8f8f8f;
+  color: var(--main-color);
+  font-size: 18px;
+  padding: 15px;
+  font-weight: bold;
+  border-radius: 8px;
 }
