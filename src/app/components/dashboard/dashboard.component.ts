@@ -13,6 +13,7 @@ import { PaginationComponent } from '../../layout/pagination/pagination.componen
 import { HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
+import { TripCacheService } from '../../services/trip-cache.service';
 
 interface StatsCard {
   title: string;
@@ -59,6 +60,7 @@ export class DashboardComponent {
     private cdr: ChangeDetectorRef,
     private router: Router, // ← أضف ده
     private location: Location,
+    private tripCacheService: TripCacheService
   ) {}
 
   ngOnInit(): void {
@@ -202,10 +204,10 @@ export class DashboardComponent {
     });
   }
 
-  viewTripDetails(tripId: number) {
-    this.router.navigate(['/last-trip', tripId]);
-    // أو لو عايز تضيف child route تحت dashboard:
-    // this.router.navigate(['/dashboard/last-trip', tripId]);
+  viewTripDetails(trip: LastTripItem) {
+    // ← غيّر الـ param من tripId إلى full trip
+    this.tripCacheService.set(trip.tripId, trip);
+    this.router.navigate(['/last-trip', trip.tripId]);
   }
 
   goBack() {

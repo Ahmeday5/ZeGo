@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router'; // أضف Router لو عايز
 import { Location } from '@angular/common';
 import { ApiService } from '../../services/api.service';
+import { TripCacheService } from '../../services/trip-cache.service'; // ← أضف
 import { LastTripItem } from '../../types/dashboard.type';
 
 @Component({
@@ -10,51 +11,63 @@ import { LastTripItem } from '../../types/dashboard.type';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './last-trips-details.component.html',
-  styleUrl: './last-trips-details.component.scss'
+  styleUrl: './last-trips-details.component.scss',
 })
 export class LastTripsDetailsComponent implements OnInit {
   trip: LastTripItem | null = null;
   loading = true;
   errorMessage: string | null = null;
   tripId!: number;
-  
+
   constructor(
     private route: ActivatedRoute,
     private apiService: ApiService,
-    private location: Location
+    private location: Location,
+    private tripCacheService: TripCacheService,
   ) {}
 
   ngOnInit(): void {
     this.tripId = Number(this.route.snapshot.paramMap.get('tripId'));
-    if (this.tripId) {
-      this.loadTripDetails();
-    } else {
+
+    if (!this.tripId) {
       this.errorMessage = 'رقم الرحلة غير موجود';
       this.loading = false;
+      return;
     }
+
+    // 1. أول حاجة: الكاش (الأسرع والأهم)
+    const cachedTrip = this.tripCacheService.get(this.tripId);
+    if (cachedTrip) {
+      this.trip = cachedTrip;
+      this.loading = false;
+      return;
+    }
+
+    // 2. لو مش موجود → fallback (رحلات آخر 24 ساعة بـ pageSize كبير)
+    this.loadTripFromAPI();
   }
 
-  loadTripDetails() {
+  private loadTripFromAPI() {
     this.loading = true;
     this.errorMessage = null;
 
-    // مؤقتًا: نجيب كل الرحلات ونفلتر (غير مثالي لكن يشتغل)
-    // الأفضل: اعمل endpoint جديد /api/Dashboard/trips/:id
-    this.apiService.getLastTrips(1, 100).subscribe({
+    // 500 أو 1000 حسب ما الـ backend يسمح (جرب 500 الأول)
+    this.apiService.getLastTrips(1, 500).subscribe({
       next: (res) => {
-        const found = res.items.find(t => t.tripId === this.tripId);
+        const found = res.items.find((t) => t.tripId === this.tripId);
         if (found) {
           this.trip = found;
+          this.tripCacheService.set(this.tripId, found); // احفظه في الكاش للمرة الجاية
         } else {
-          this.errorMessage = 'لم يتم العثور على الرحلة رقم ' + this.tripId;
+          this.errorMessage = `لم يتم العثور على الرحلة رقم ${this.tripId}`;
         }
         this.loading = false;
       },
       error: (err) => {
         console.error(err);
-        this.errorMessage = 'فشل تحميل تفاصيل الرحلة';
+        this.errorMessage = 'فشل تحميل تفاصيل الرحلة، حاول مرة أخرى';
         this.loading = false;
-      }
+      },
     });
   }
 
