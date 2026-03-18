@@ -15,6 +15,7 @@ export interface DashboardSummaryResponse {
 export interface ClientInfo {
   id: number;
   name: string;
+  phone:string
 }
 
 export interface DriverCar {

@@ -16,9 +16,7 @@ import { Router } from '@angular/router';
 let isRefreshing = false;
 
 // ده اللي بيخلّي كل الطلبات اللي جت أثناء الـ refresh تنتظر لحد ما التوكن الجديد يجي
-const refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<
-  string | null
->(null);
+const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<any>,
