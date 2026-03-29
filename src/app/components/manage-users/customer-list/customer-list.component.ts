@@ -403,12 +403,13 @@ export class CustomerListComponent implements OnInit {
   exportCSV(): void {
     if (!this.clients.length) return;
 
-    const headers = ['الرقم', 'الاسم', 'التليفون', 'البريد الإلكتروني'];
+    const headers = ['#', 'الاسم', 'التليفون', 'تاريخ الإنشاء', 'الحالة'];
     const rows = this.clients.map((c, i) => [
       ((this.currentPage - 1) * this.pageSize + i + 1).toString(),
       c.name,
       c.phone,
-      c.email || '',
+      c.createdAt || '',
+      c.isActive ? 'نشط' : 'محظور',
     ]);
 
     const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
@@ -421,6 +422,56 @@ export class CustomerListComponent implements OnInit {
     a.download = `العملاء_${new Date().toLocaleDateString('ar-EG')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  exportAllCSV(): void {
+    this.loading = true;
+
+    let params = this.getFilterParams();
+
+    // نخلي pageSize كبير جدًا عشان نجيب كل الداتا
+    params = params.set('pageIndex', '1');
+    params = params.set('pageSize', '1000000000'); // رقم كبير
+
+    this.api.getAllClients(params).subscribe({
+      next: (res) => {
+        const allClients = res.data || [];
+
+        if (!allClients.length) {
+          this.loading = false;
+          return;
+        }
+
+        const headers = ['#', 'الاسم', 'التليفون', 'تاريخ الإنشاء', 'الحالة'];
+
+        const rows = allClients.map((c: any, i: number) => [
+          (i + 1).toString(),
+          c.name,
+          c.phone,
+          c.createdAt || '',
+          c.isActive ? 'نشط' : 'محظور',
+        ]);
+
+        const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
+
+        const blob = new Blob(['\uFEFF' + csv], {
+          type: 'text/csv;charset=utf-8;',
+        });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `كل_العملاء_${new Date().toLocaleDateString('ar-EG')}.csv`;
+        a.click();
+
+        URL.revokeObjectURL(url);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.loading = false;
+      },
+    });
   }
 
   // دالة لتنسيق التاريخ

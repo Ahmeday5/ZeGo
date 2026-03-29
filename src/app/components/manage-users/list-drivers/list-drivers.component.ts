@@ -455,7 +455,7 @@ export class ListDriversComponent implements OnInit {
       d.carModel,
       d.carNumber,
       d.licenseNumber,
-      d.isActive ? 'نشط' : 'غير نشط',
+      d.isActive ? 'نشط' : 'محظور',
       new Date().toLocaleDateString('ar-EG'), // لو فيه تاريخ حقيقي، ضيفه هنا
     ]);
 
@@ -469,6 +469,93 @@ export class ListDriversComponent implements OnInit {
     a.download = `السائقين_${new Date().toLocaleDateString('ar-EG')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  generateCSV(drivers: any[]): void {
+    const headers = [
+      '#',
+      'الاسم',
+      'التليفون',
+      'نوع السيارة',
+      'الموديل',
+      'رقم السيارة',
+      'رقم الرخصة',
+      'المبلغ المستحق علي السائق',
+      'متوسط التقييم',
+      'الحالة',
+      'تاريخ الانضمام',
+    ];
+
+    const rows = drivers.map((d, i) => [
+      (i + 1).toString(),
+      d.name,
+      d.phone,
+      d.carType,
+      d.carModel,
+      d.carNumber,
+      d.licenseNumber,
+      d.debt || 'غير موجود',
+      d.averageRating || 'غير موجود',
+      d.isActive ? 'نشط' : 'محظور',
+      new Date().toLocaleDateString('ar-EG'),
+    ]);
+
+    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
+
+    const blob = new Blob(['\uFEFF' + csv], {
+      type: 'text/csv;charset=utf-8;',
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `كل_السائقين_${new Date().toLocaleDateString('ar-EG')}.csv`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  }
+
+  exportAllCSV(): void {
+    this.loading = true;
+
+    let params = this.getFilterParams();
+
+    const pageSize = 50; // نفس اللي الباك بيرجعه
+    let currentPage = 1;
+    let allDrivers: any[] = [];
+
+    const fetchPage = () => {
+      let requestParams = params
+        .set('PageIndex', currentPage.toString())
+        .set('PageSize', pageSize.toString());
+
+      this.api.getAllDrivers(requestParams).subscribe({
+        next: (res) => {
+          const data = res.data;
+          const drivers = data.data || [];
+
+          allDrivers = [...allDrivers, ...drivers];
+
+          const totalCount = data.totalCount || 0;
+          const totalPages = Math.ceil(totalCount / pageSize);
+
+          if (currentPage < totalPages) {
+            currentPage++;
+            fetchPage(); // نجيب الصفحة اللي بعدها
+          } else {
+            // ✅ خلصنا كل الصفحات → نعمل CSV
+            this.generateCSV(allDrivers);
+            this.loading = false;
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          this.loading = false;
+        },
+      });
+    };
+
+    fetchPage();
   }
 
   viewDriverDetails(id: number) {

@@ -54,6 +54,9 @@
         <button type="button" class="btn Custombtn-export" (click)="exportCSV()">
           <h6>تصدير CSV</h6>
         </button>
+        <button type="button" class="btn Custombtn-export" (click)="exportAllCSV()">
+          <h6>تصدير كل العملاء</h6>
+        </button>
       </div>
     </div>
 
@@ -130,7 +133,7 @@
             }
             <td>{{ client.name }}</td>
             <td dir="ltr">{{ client.phone }}</td>
-            <td>{{ formatDate(client.createdAt)  }}</td>
+            <td>{{ formatDate(client.createdAt) }}</td>
             <td>
               <span class="badge {{ client.isActive ? 'bg-success' : 'bg-secondary' }}">
                 {{ client.isActive ? 'نشط' : 'غير نشط' }}

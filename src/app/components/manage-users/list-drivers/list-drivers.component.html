@@ -54,6 +54,9 @@
           <img src="/assets/img/customer/export.png" class="img-fluid" alt="">
           <h6>تصدير CSV</h6>
         </button>
+        <button type="button" class="btn Custombtn-export" (click)="exportAllCSV()">
+          <h6>تصدير كل السائقين</h6>
+        </button>
       </div>
     </div>
 
@@ -174,7 +177,7 @@
   <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" [windowSize]="1"
     (pageChange)="onPageChange($event)"></app-pagination>
 
-    @if (showEditDriverModal) {
+  @if (showEditDriverModal) {
   <div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
@@ -278,13 +281,12 @@
             </div>
 
             <div class="d-flex justify-content-center gap-2 mt-4">
-              <button type="button" class="btn btn-save" [disabled]="editDriverLoading"
-                      (click)="submitEditDriver()">
+              <button type="button" class="btn btn-save" [disabled]="editDriverLoading" (click)="submitEditDriver()">
                 <span *ngIf="editDriverLoading" class="spinner-border spinner-border-sm me-2"></span>
                 حفظ التعديلات
               </button>
               <button type="button" class="btn btn-cansel" (click)="closeEditDriverModal()"
-                      [disabled]="editDriverLoading">
+                [disabled]="editDriverLoading">
                 إلغاء
               </button>
             </div>
@@ -294,7 +296,7 @@
       </div>
     </div>
   </div>
-}
+  }
 
 
 
