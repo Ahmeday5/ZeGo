@@ -11,6 +11,9 @@ import {
   DriversResponse,
 } from '../../../types/driver.type';
 import { RouterLink, Router } from '@angular/router';
+import { WalletModalComponent } from '../../wallet-modal/wallet-modal.component';
+import { ToastService } from '../../../shared/toast/toast.service';
+import { ConfirmService } from '../../../shared/confirm-dialog/confirm.service';
 
 interface DriverEditVM {
   name: string;
@@ -29,7 +32,7 @@ interface DriverEditVM {
 @Component({
   selector: 'app-list-drivers',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent],
+  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, WalletModalComponent],
   templateUrl: './list-drivers.component.html',
   styleUrl: './list-drivers.component.scss',
 })
@@ -58,6 +61,11 @@ export class ListDriversComponent implements OnInit {
   resetLoading = false;
   resetErrorMessage: string | null = null;
 
+  // محفظة السائق
+  walletModalVisible = false;
+  walletUserId: number | null = null;
+  walletUserName: string | null = null;
+
   //تعديل
   showEditDriverModal = false;
   editDriverForm: FormGroup;
@@ -78,6 +86,8 @@ export class ListDriversComponent implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private cdr: ChangeDetectorRef,
+    private toast: ToastService,
+    private confirm: ConfirmService,
   ) {
     this.filterForm = this.fb.group({
       name: [''],
@@ -158,11 +168,8 @@ export class ListDriversComponent implements OnInit {
     this.api.resetDriverPassword(this.selectedDriverId, payload).subscribe({
       next: () => {
         this.resetLoading = false;
-        this.DriverMessage = 'تم إعادة تعيين كلمة المرور بنجاح';
+        this.toast.success('تم إعادة تعيين كلمة المرور بنجاح', 'نجاح');
         this.closeResetPasswordModal();
-        setTimeout(() => (this.DriverMessage = null), 4000);
-        // اختياري: refresh الجدول
-        // this.loadDrivers(this.currentPage, this.getFilterParams());
       },
       error: (err) => {
         this.resetLoading = false;
@@ -252,11 +259,9 @@ export class ListDriversComponent implements OnInit {
     });
 
     this.api.updateDriver(this.selectedEditDriverId, formData).subscribe({
-      next: (res) => {
-        this.DriverMessage = 'تم تحديث بيانات السائق بنجاح';
+      next: () => {
+        this.toast.success('تم تحديث بيانات السائق بنجاح', 'نجاح');
         this.closeEditDriverModal();
-        setTimeout(() => (this.DriverMessage = null), 3000);
-
         const params = this.getFilterParams();
         this.loadDrivers(this.currentPage, params);
         this.editDriverLoading = false;
@@ -352,85 +357,88 @@ export class ListDriversComponent implements OnInit {
     return params;
   }
 
-  deactivatedDriver(id: number) {
-    if (confirm('هل أنت متأكد من حظر هذه السائق')) {
-      this.loading = true;
-      this.api.deactivateDriver(id).subscribe({
-        next: () => {
-          this.DriverMessage = 'تم حظر السائق بنجاح';
-          setTimeout(() => {
-            this.DriverMessage = null;
-            const params = this.getFilterParams(); // نفس الفلاتر
-            this.loadDrivers(this.currentPage, params); // نفس الصفحة
-          }, 2000);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error(`خطأ في حظر السائق ${id}:`, error);
-          this.noDriverMessage = 'فشل حظر السائق';
-          this.loading = false;
-          setTimeout(() => {
-            this.noDriverMessage = null;
-          }, 2000);
-          this.cdr.detectChanges();
-        },
-      });
-    }
+  async deactivatedDriver(id: number) {
+    const ok = await this.confirm.ask({
+      title: 'حظر السائق',
+      message: 'هل أنت متأكد من حظر هذا السائق؟ لن يتمكن من استقبال طلبات جديدة.',
+      variant: 'danger',
+      icon: 'fa-ban',
+      confirmText: 'نعم، حظر',
+    });
+    if (!ok) return;
+
+    this.loading = true;
+    this.api.deactivateDriver(id).subscribe({
+      next: () => {
+        this.toast.success('تم حظر السائق بنجاح', 'نجاح');
+        const params = this.getFilterParams();
+        this.loadDrivers(this.currentPage, params);
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error(`خطأ في حظر السائق ${id}:`, error);
+        this.toast.error('فشل حظر السائق', 'خطأ');
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
-  activatedDriver(id: number) {
-    if (confirm('هل أنت متأكد من تفعيل هذه السائق')) {
-      this.loading = true;
-      this.api.activateDriver(id).subscribe({
-        next: () => {
-          this.DriverMessage = 'تم تفعيل السائق بنجاح';
-          setTimeout(() => {
-            this.DriverMessage = null;
-            const params = this.getFilterParams(); // نفس الفلاتر
-            this.loadDrivers(this.currentPage, params); // نفس الصفحة
-          }, 2000);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error(`خطأ في تفعيل السائق ${id}:`, error);
-          this.noDriverMessage = 'فشل تفعيل السائق';
-          this.loading = false;
-          setTimeout(() => {
-            this.noDriverMessage = null;
-          }, 2000);
-          this.cdr.detectChanges();
-        },
-      });
-    }
+  async activatedDriver(id: number) {
+    const ok = await this.confirm.ask({
+      title: 'تفعيل السائق',
+      message: 'هل أنت متأكد من تفعيل هذا السائق؟',
+      variant: 'success',
+      icon: 'fa-user-check',
+      confirmText: 'نعم، تفعيل',
+    });
+    if (!ok) return;
+
+    this.loading = true;
+    this.api.activateDriver(id).subscribe({
+      next: () => {
+        this.toast.success('تم تفعيل السائق بنجاح', 'نجاح');
+        const params = this.getFilterParams();
+        this.loadDrivers(this.currentPage, params);
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error(`خطأ في تفعيل السائق ${id}:`, error);
+        this.toast.error('فشل تفعيل السائق', 'خطأ');
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
-  deleteDriver(id: number) {
-    if (confirm('هل أنت متأكد من حذف هذه السائق')) {
-      this.loading = true;
-      this.api.deletedDriver(id).subscribe({
-        next: () => {
-          this.DriverMessage = 'تم حذف السائق بنجاح';
-          setTimeout(() => {
-            this.DriverMessage = null;
-            const params = this.getFilterParams(); // نفس الفلاتر
-            this.loadDrivers(this.currentPage, params); // نفس الصفحة
-          }, 2000);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error(`خطأ في حذف السائق ${id}:`, error);
-          this.noDriverMessage = 'فشل حذف السائق';
-          this.loading = false;
-          setTimeout(() => {
-            this.noDriverMessage = null;
-          }, 2000);
-          this.cdr.detectChanges();
-        },
-      });
-    }
+  async deleteDriver(id: number) {
+    const ok = await this.confirm.ask({
+      title: 'حذف السائق',
+      message: 'هل أنت متأكد من حذف هذا السائق نهائيًا؟ هذا الإجراء لا يمكن التراجع عنه.',
+      variant: 'danger',
+      icon: 'fa-trash',
+      confirmText: 'نعم، حذف',
+    });
+    if (!ok) return;
+
+    this.loading = true;
+    this.api.deletedDriver(id).subscribe({
+      next: () => {
+        this.toast.success('تم حذف السائق بنجاح', 'نجاح');
+        const params = this.getFilterParams();
+        this.loadDrivers(this.currentPage, params);
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error(`خطأ في حذف السائق ${id}:`, error);
+        this.toast.error('فشل حذف السائق', 'خطأ');
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   exportCSV(): void {
@@ -560,5 +568,28 @@ export class ListDriversComponent implements OnInit {
 
   viewDriverDetails(id: number) {
     this.router.navigate(['/driver-details', id]);
+  }
+
+  /******************************************************المحفظة************************************************************/
+
+  openWallet(driver: allDriver) {
+    this.walletUserId = driver.id;
+    this.walletUserName = driver.name;
+    this.walletModalVisible = true;
+    this.cdr.detectChanges();
+  }
+
+  openWalletBrowse() {
+    this.walletUserId = null;
+    this.walletUserName = null;
+    this.walletModalVisible = true;
+    this.cdr.detectChanges();
+  }
+
+  closeWallet() {
+    this.walletModalVisible = false;
+    this.walletUserId = null;
+    this.walletUserName = null;
+    this.cdr.detectChanges();
   }
 }

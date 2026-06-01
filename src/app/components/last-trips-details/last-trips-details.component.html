@@ -3,7 +3,7 @@
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
       <h4 class="mb-0 fw-bold">تفاصيل الرحلة رقم {{ trip?.tripId || 'جاري التحميل...' }}</h4>
       <button class="btn btn-light" (click)="goBack()">
-       رجوع <i class="fa-solid fa-arrow-left"></i>
+        رجوع <i class="fa-solid fa-arrow-left"></i>
       </button>
     </div>
 
@@ -65,7 +65,22 @@
           </div>
           <div class="row mb-2">
             <div class="col-5 fw-bold">رقم الهاتف:</div>
-            <div class="col-7">{{ trip.client.phone || '-' }}</div>
+            <div class="col-7 d-flex align-items-center gap-2">
+              <span>{{ trip.client.phone || '-' }}</span>
+
+              @if (trip.client.phone) {
+              <!-- اتصال -->
+              <a [href]="'tel:' + trip.client.phone" class="text-success fs-5" title="اتصال">
+                <i class="fa-solid fa-phone"></i>
+              </a>
+
+              <!-- واتساب -->
+              <a [href]="'https://wa.me/' + formatPhone(trip.client.phone)" target="_blank" class="text-success fs-5"
+                title="واتساب">
+                <i class="fa-brands fa-whatsapp"></i>
+              </a>
+              }
+            </div>
           </div>
         </div>
 
@@ -79,7 +94,20 @@
           </div>
           <div class="row">
             <div class="col-md-4 fw-bold">رقم الهاتف:</div>
-            <div class="col-md-8">{{ trip.driver.phone }}</div>
+            <div class="col-md-8 d-flex align-items-center gap-2">
+              <span>{{ trip.driver.phone }}</span>
+
+              <!-- اتصال -->
+              <a [href]="'tel:' + trip.driver.phone" class="text-success fs-5" title="اتصال">
+                <i class="fa-solid fa-phone"></i>
+              </a>
+
+              <!-- واتساب -->
+              <a [href]="'https://wa.me/' + formatPhone(trip.driver.phone)" target="_blank" class="text-success fs-5"
+                title="واتساب">
+                <i class="fa-brands fa-whatsapp"></i>
+              </a>
+            </div>
           </div>
           <div class="row">
             <div class="col-md-4 fw-bold">التقييم:</div>

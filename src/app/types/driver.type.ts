@@ -3,6 +3,7 @@ export interface allDriver {
   name: string;
   email: string;
   phone: string;
+  governorate?: string;
   carType: string;
   carModel: string;
   carNumber: string;
@@ -37,24 +38,47 @@ export interface DriversResponse {
 export interface DriverDetail {
   id: number;
   name: string;
-  email: string;
   phone: string;
+  government?: string | null;
   address: string;
-  carImgUrl: string;
+
+  // License
+  licenseExpiryDate?: string;
+  driverLicenseExpiryDate?: string;
+  licenseImageUrl: string;
+  driverLicenseImageUrl?: string;
+
+  // National ID
+  nationalId: string;
+  nationalIdImageUrlFront: string;
+  nationalIdImageUrlBehind: string;
+
+  // Car
   carModel: string;
   carNumber: string;
   carYear: string;
   carColor: string;
   carType: string;
-  profitPercentage: string;
-  debt: string;
-  averageRating: string;
-  isActive: boolean;
-  licenseImageUrl: string;
-  expiryDate: string;
-  licenseNumber: string;
-  nationalIdImageUrl: string;
-  nationalId: string;
+  carImgUrl: string;
+  carLicenseUrl?: string;
+
+  // Profile
   driverProfile: string;
+
+  // Meta
   createdAt?: string;
+  isActive: boolean;
+  profitPercentage: number;
+  debt: number;
+  averageRating: number;
+}
+
+interface Document {
+  title: string;
+  url?: string;
+  images?: string[];
+  expiryDate?: string;
+  number?: string;
+  numberTitle?: string;
+  icon: string;
 }

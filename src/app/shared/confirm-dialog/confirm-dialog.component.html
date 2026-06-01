@@ -1,0 +1,18 @@
+@if (state().open) {
+  <div class="confirm-overlay" (click)="onCancel()">
+    <div class="confirm-modal" [class]="'variant-' + state().variant" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <div class="confirm-icon-wrap">
+        <i class="fa-solid" [class]="iconFor(state().variant, state().icon)"></i>
+      </div>
+      <h4 class="confirm-title">{{ state().title }}</h4>
+      <p class="confirm-message">{{ state().message }}</p>
+      <div class="confirm-actions">
+        <button type="button" class="btn-cancel" (click)="onCancel()">{{ state().cancelText }}</button>
+        <button type="button" class="btn-confirm" (click)="onConfirm()">
+          <i class="fa-solid fa-check me-1"></i>
+          {{ state().confirmText }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

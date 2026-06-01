@@ -26,6 +26,7 @@ export class AuthService {
 
   private userDataSubject = new BehaviorSubject<StoredUser | null>(null);
   private refreshTimeoutId: any = null;
+  private refreshInProgress: Promise<StoredUser> | null = null;
 
   constructor(private http: HttpClient, private router: Router) {
     this.loadUserData();
@@ -43,18 +44,29 @@ export class AuthService {
   }
 
   // === تحويل الاستجابة لـ StoredUser ===
+  // Handles both flat { accessToken } and nested { data: { accessToken } } response formats
   private makeStoredUserFromRaw(raw: RawAuthResponse): StoredUser {
-    const accessExp = this.decodeExpFromToken(raw.accessToken!);
+    const nested = raw.data ?? raw['Data'];
+    const accessToken: string | undefined = raw.accessToken ?? nested?.accessToken;
+    const refreshToken: string | undefined = raw.refreshToken ?? nested?.refreshToken;
+
+    if (!accessToken || accessToken === 'undefined') {
+      console.error('[Auth] Invalid auth response — no accessToken found:', raw);
+      throw new Error('Invalid auth response: missing accessToken');
+    }
+
+    const accessExp = this.decodeExpFromToken(accessToken);
     const accessTokenExpiresAt = accessExp
       ? new Date(accessExp).toISOString()
-      : new Date(Date.now() + 30 * 60 * 1000).toISOString(); // fallback 30 دقيقة
+      : new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
-    // لو الـ backend مرجعش refresh expiry → نفترض 14 يوم
-    const refreshTokenExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    const refreshTokenExpiresAt = new Date(
+      Date.now() + 14 * 24 * 60 * 60 * 1000,
+    ).toISOString();
 
     return {
-      accessToken: raw.accessToken!,
-      refreshToken: raw.refreshToken!,
+      accessToken,
+      refreshToken: refreshToken ?? '',
       accessTokenExpiresAt,
       refreshTokenExpiresAt,
     };
@@ -69,7 +81,7 @@ export class AuthService {
     this.isLoggedInSubject.next(true);
     this.startTokenRefreshTimer(); // مهم جدًا: نعيد جدولة التايمر بالوقت الجديد
   }
-
+  
   // === تنظيف كل حاجة ===
   private clearPersisted() {
     this.userDataSubject.next(null);
@@ -151,13 +163,26 @@ export class AuthService {
   }
 
   // === تجديد التوكن ===
-  async refresh(): Promise<StoredUser> {
+  refresh(): Promise<StoredUser> {
+    // Deduplicate: if a refresh is already in progress, return the same promise
+    if (this.refreshInProgress) {
+      return this.refreshInProgress;
+    }
+
+    this.refreshInProgress = this.performRefresh().finally(() => {
+      this.refreshInProgress = null;
+    });
+
+    return this.refreshInProgress;
+  }
+
+  private async performRefresh(): Promise<StoredUser> {
     const current = this.userDataSubject.value;
     const refreshToken = current?.refreshToken;
 
     if (!refreshToken || this.isRefreshTokenExpired()) {
       this.logoutAndRedirect();
-      throw new Error('Refresh token منتهي');
+      throw new Error('Refresh token expired');
     }
 
     try {
@@ -165,12 +190,15 @@ export class AuthService {
         this.http.post<RawAuthResponse>(`${this.API_URL}/api/Auth/refresh-token`, { refreshToken })
       );
 
+      // Pass raw directly so makeStoredUserFromRaw can handle both flat and nested formats.
+      // Fall back to the old refreshToken if the new response doesn't include one.
+      const nested = raw.data ?? raw['Data'];
       const newUser = this.makeStoredUserFromRaw({
-        accessToken: raw.accessToken,
-        refreshToken: raw.refreshToken ?? refreshToken,
+        ...raw,
+        refreshToken: raw.refreshToken ?? nested?.refreshToken ?? refreshToken,
       });
 
-      this.persistUser(newUser); // ← هنا بيحصل startTokenRefreshTimer تلقائي
+      this.persistUser(newUser);
       return newUser;
     } catch (error) {
       this.logoutAndRedirect();
@@ -240,7 +268,10 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return this.userDataSubject.value?.accessToken || localStorage.getItem('token');
+    const token =
+      this.userDataSubject.value?.accessToken ?? localStorage.getItem('token');
+    // Guard against the string "undefined" or "null" stored in localStorage
+    return token && token !== 'undefined' && token !== 'null' ? token : null;
   }
 
   getSavedEmail(): string | null {

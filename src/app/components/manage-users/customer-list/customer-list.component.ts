@@ -7,6 +7,9 @@ import { HttpParams } from '@angular/common/http';
 import { ApiService } from '../../../services/api.service';
 import { PaginationComponent } from '../../../layout/pagination/pagination.component';
 import { allClient, ClientsResponse } from '../../../types/clients.type';
+import { WalletModalComponent } from '../../wallet-modal/wallet-modal.component';
+import { ToastService } from '../../../shared/toast/toast.service';
+import { ConfirmService } from '../../../shared/confirm-dialog/confirm.service';
 @Component({
   selector: 'app-customer-list',
   standalone: true,
@@ -16,6 +19,7 @@ import { allClient, ClientsResponse } from '../../../types/clients.type';
     FormsModule,
     RouterModule,
     PaginationComponent,
+    WalletModalComponent,
   ],
   templateUrl: './customer-list.component.html',
   styleUrls: ['./customer-list.component.scss'],
@@ -30,8 +34,7 @@ export class CustomerListComponent implements OnInit {
   currentPage = 1;
   pageSize = 10;
   totalPages = 0;
-  totalCount = 0;
-
+  totalCount = 0
   filterForm: FormGroup;
   noClientMessage: string | null = null;
   ClientMessage: string | null = null;
@@ -52,11 +55,18 @@ export class CustomerListComponent implements OnInit {
   resetPasswordForm: FormGroup;
   resetLoading = false;
   resetErrorMessage: string | null = null;
+  
+  // محفظة العميل
+  walletModalVisible = false;
+  walletUserId: number | null = null;
+  walletUserName: string | null = null;
 
   constructor(
     private api: ApiService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
+    private toast: ToastService,
+    private confirm: ConfirmService,
   ) {
     this.filterForm = this.fb.group({
       name: [''],
@@ -129,11 +139,8 @@ export class CustomerListComponent implements OnInit {
     this.api.resetClientPassword(this.selectedClientId, payload).subscribe({
       next: () => {
         this.resetLoading = false;
-        this.ClientMessage = 'تم إعادة تعيين كلمة المرور بنجاح';
+        this.toast.success('تم إعادة تعيين كلمة المرور بنجاح', 'نجاح');
         this.closeResetPasswordModal();
-        setTimeout(() => (this.ClientMessage = null), 4000);
-        // اختياري: refresh الجدول
-        // this.loadClients(this.currentPage, this.getFilterParams());
       },
       error: (err) => {
         this.resetLoading = false;
@@ -227,19 +234,15 @@ export class CustomerListComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          this.ClientMessage = 'تم تعديل بيانات العميل بنجاح';
+          this.toast.success('تم تعديل بيانات العميل بنجاح', 'نجاح');
           this.closeEdit();
-          setTimeout(() => {
-            this.ClientMessage = null;
-            const params = this.getFilterParams();
-            this.loadClients(this.currentPage, params);
-          }, 1800);
+          const params = this.getFilterParams();
+          this.loadClients(this.currentPage, params);
           this.loading = false;
         },
         error: (err) => {
-          this.noClientMessage = err?.error?.message || 'فشل تعديل العميل';
+          this.toast.error(err?.error?.message || err?.message || 'فشل تعديل العميل', 'خطأ');
           this.loading = false;
-          setTimeout(() => (this.noClientMessage = null), 3000);
         },
       });
   }
@@ -319,85 +322,88 @@ export class CustomerListComponent implements OnInit {
     return params;
   }
 
-  deactivatedClient(id: number) {
-    if (confirm('هل أنت متأكد من حظر هذه العميل')) {
-      this.loading = true;
-      this.api.deactivateClients(id).subscribe({
-        next: () => {
-          this.ClientMessage = 'تم حظر العميل بنجاح';
-          setTimeout(() => {
-            this.ClientMessage = null;
-            const params = this.getFilterParams(); // نفس الفلاتر
-            this.loadClients(this.currentPage, params); // نفس الصفحة
-          }, 2000);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error(`خطأ في حظر العميل ${id}:`, error);
-          this.noClientMessage = 'فشل حظر العميل';
-          this.loading = false;
-          setTimeout(() => {
-            this.noClientMessage = null;
-          }, 2000);
-          this.cdr.detectChanges();
-        },
-      });
-    }
+  async deactivatedClient(id: number) {
+    const ok = await this.confirm.ask({
+      title: 'حظر العميل',
+      message: 'هل أنت متأكد من حظر هذا العميل؟ لن يتمكن من استخدام التطبيق.',
+      variant: 'danger',
+      icon: 'fa-ban',
+      confirmText: 'نعم، حظر',
+    });
+    if (!ok) return;
+
+    this.loading = true;
+    this.api.deactivateClients(id).subscribe({
+      next: () => {
+        this.toast.success('تم حظر العميل بنجاح', 'نجاح');
+        const params = this.getFilterParams();
+        this.loadClients(this.currentPage, params);
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error(`خطأ في حظر العميل ${id}:`, error);
+        this.toast.error('فشل حظر العميل', 'خطأ');
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
-  activatedClient(id: number) {
-    if (confirm('هل أنت متأكد من تفعيل هذه العميل')) {
-      this.loading = true;
-      this.api.activateClients(id).subscribe({
-        next: () => {
-          this.ClientMessage = 'تم تفعيل العميل بنجاح';
-          setTimeout(() => {
-            this.ClientMessage = null;
-            const params = this.getFilterParams(); // نفس الفلاتر
-            this.loadClients(this.currentPage, params); // نفس الصفحة
-          }, 2000);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error(`خطأ في تفعيل العميل ${id}:`, error);
-          this.noClientMessage = 'فشل تفعيل العميل';
-          this.loading = false;
-          setTimeout(() => {
-            this.noClientMessage = null;
-          }, 2000);
-          this.cdr.detectChanges();
-        },
-      });
-    }
+  async activatedClient(id: number) {
+    const ok = await this.confirm.ask({
+      title: 'تفعيل العميل',
+      message: 'هل أنت متأكد من تفعيل هذا العميل؟',
+      variant: 'success',
+      icon: 'fa-user-check',
+      confirmText: 'نعم، تفعيل',
+    });
+    if (!ok) return;
+
+    this.loading = true;
+    this.api.activateClients(id).subscribe({
+      next: () => {
+        this.toast.success('تم تفعيل العميل بنجاح', 'نجاح');
+        const params = this.getFilterParams();
+        this.loadClients(this.currentPage, params);
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error(`خطأ في تفعيل العميل ${id}:`, error);
+        this.toast.error('فشل تفعيل العميل', 'خطأ');
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
-  deleteClient(id: number) {
-    if (confirm('هل أنت متأكد من حذف هذه العميل')) {
-      this.loading = true;
-      this.api.deletedClient(id).subscribe({
-        next: () => {
-          this.ClientMessage = 'تم حذف العميل بنجاح';
-          setTimeout(() => {
-            this.ClientMessage = null;
-            const params = this.getFilterParams(); // نفس الفلاتر
-            this.loadClients(this.currentPage, params); // نفس الصفحة
-          }, 2000);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error(`خطأ في حذف العميل ${id}:`, error);
-          this.noClientMessage = 'فشل حذف العميل';
-          this.loading = false;
-          setTimeout(() => {
-            this.noClientMessage = null;
-          }, 2000);
-          this.cdr.detectChanges();
-        },
-      });
-    }
+  async deleteClient(id: number) {
+    const ok = await this.confirm.ask({
+      title: 'حذف العميل',
+      message: 'هل أنت متأكد من حذف هذا العميل نهائيًا؟ هذا الإجراء لا يمكن التراجع عنه.',
+      variant: 'danger',
+      icon: 'fa-trash',
+      confirmText: 'نعم، حذف',
+    });
+    if (!ok) return;
+
+    this.loading = true;
+    this.api.deletedClient(id).subscribe({
+      next: () => {
+        this.toast.success('تم حذف العميل بنجاح', 'نجاح');
+        const params = this.getFilterParams();
+        this.loadClients(this.currentPage, params);
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error(`خطأ في حذف العميل ${id}:`, error);
+        this.toast.error('فشل حذف العميل', 'خطأ');
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   exportCSV(): void {
@@ -477,5 +483,28 @@ export class CustomerListComponent implements OnInit {
   // دالة لتنسيق التاريخ
   formatDate(date: string): string {
     return date.split('T')[0]; // استخراج YYYY-MM-DD فقط
+  }
+
+  /******************************************************المحفظة************************************************************/
+
+  openWallet(client: allClient) {
+    this.walletUserId = client.id;
+    this.walletUserName = client.name;
+    this.walletModalVisible = true;
+    this.cdr.detectChanges();
+  }
+
+  openWalletBrowse() {
+    this.walletUserId = null;
+    this.walletUserName = null;
+    this.walletModalVisible = true;
+    this.cdr.detectChanges();
+  }
+
+  closeWallet() {
+    this.walletModalVisible = false;
+    this.walletUserId = null;
+    this.walletUserName = null;
+    this.cdr.detectChanges();
   }
 }

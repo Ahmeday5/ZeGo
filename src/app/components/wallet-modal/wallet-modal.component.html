@@ -1,0 +1,254 @@
+@if (visible) {
+<div class="wallet-overlay" (click)="close()">
+  <div class="wallet-modal" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="wallet-header">
+      <div class="header-left">
+        <div class="icon-wrap">
+          <i class="fa-solid fa-wallet"></i>
+        </div>
+        <div class="header-text">
+          <h4 class="m-0">إدارة محفظة {{ userType === 'Client' ? 'العميل' : 'السائق' }}</h4>
+          <small class="opacity-90">
+            @if (selectedUserLabel) { {{ selectedUserLabel }} } @else { اختر {{ userType === 'Client' ? 'عميل' : 'سائق' }} من القائمة }
+          </small>
+        </div>
+      </div>
+
+      <div class="header-right">
+        @if (currentBalance !== null) {
+          <div class="balance-chip">
+            <span class="label">الرصيد الحالي</span>
+            <span class="value">{{ currentBalance | number }} ج.م</span>
+          </div>
+        }
+        <button type="button" class="btn-close-x" (click)="close()" aria-label="إغلاق">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="wallet-body">
+
+      <!-- User picker -->
+      <section class="picker-card">
+        <label class="picker-label">
+          <i class="fa-solid fa-user-magnifying-glass me-2"></i>
+          {{ userType === 'Client' ? 'اختر العميل' : 'اختر السائق' }}
+        </label>
+
+        <div class="picker-wrap" #userPicker>
+          <button type="button" class="picker-trigger" [class.has-value]="selectedUserId" (click)="togglePicker()">
+            <span class="picker-value">
+              @if (selectedUserLabel) {
+                <i class="fa-solid fa-circle-user me-2"></i> {{ selectedUserLabel }}
+              } @else {
+                {{ userType === 'Client' ? 'اختر عميل...' : 'اختر سائق...' }}
+              }
+            </span>
+            <i class="fa-solid fa-chevron-down chevron" [class.rotated]="pickerOpen"></i>
+          </button>
+
+          @if (pickerOpen) {
+            <div class="picker-dropdown">
+              <div class="picker-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" [(ngModel)]="pickerSearch"
+                  [placeholder]="userType === 'Client' ? 'ابحث بالاسم أو الرقم أو الـ ID' : 'ابحث باسم السائق أو رقمه'"
+                  autofocus>
+              </div>
+
+              <div class="picker-list">
+                @if (pickerLoading) {
+                  <div class="picker-loading">
+                    <div class="spinner-border spinner-border-sm"></div>
+                    <span>جاري تحميل القائمة...</span>
+                  </div>
+                } @else {
+                  @for (u of filteredUsers; track u.id) {
+                    <button type="button" class="picker-item" [class.selected]="u.id === selectedUserId" (click)="selectUser(u)">
+                      <div class="avatar">
+                        <i class="fa-solid fa-user"></i>
+                      </div>
+                      <div class="info">
+                        <div class="name">{{ u.name }}</div>
+                        <div class="phone" dir="ltr">{{ u.phone }}</div>
+                      </div>
+                      <div class="id-badge">#{{ u.id }}</div>
+                    </button>
+                  }
+                  @empty {
+                    <div class="picker-empty">
+                      <i class="fa-regular fa-folder-open"></i>
+                      لا توجد نتائج
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Adjust card -->
+      <section class="adjust-card">
+        <h5 class="section-title">
+          <i class="fa-solid fa-money-bill-trend-up me-2"></i>
+          تعديل الرصيد
+        </h5>
+
+        <form [formGroup]="adjustForm" (ngSubmit)="submitAdjust()" class="adjust-form">
+
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">نوع العملية</label>
+              <div class="type-toggle">
+                <label class="toggle-option" [class.active-credit]="adjustForm.value.type === 'Credit'">
+                  <input type="radio" formControlName="type" value="Credit">
+                  <i class="fa-solid fa-circle-plus"></i>
+                  <span>إضافة رصيد</span>
+                </label>
+                <label class="toggle-option" [class.active-debit]="adjustForm.value.type === 'Debit'">
+                  <input type="radio" formControlName="type" value="Debit">
+                  <i class="fa-solid fa-circle-minus"></i>
+                  <span>خصم رصيد</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label">المبلغ (ج.م)</label>
+              <input type="number" class="form-control" formControlName="amount" min="1"
+                placeholder="أدخل المبلغ">
+              @if (adjustForm.get('amount')?.touched && adjustForm.get('amount')?.invalid) {
+                <small class="error-msg">المبلغ مطلوب ويجب أن يكون أكبر من صفر</small>
+              }
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">وصف العملية</label>
+            <input type="text" class="form-control" formControlName="description"
+              placeholder="اكتب سبب التعديل (مثال: شحن رصيد)">
+            @if (adjustForm.get('description')?.touched && adjustForm.get('description')?.invalid) {
+              <small class="error-msg">الوصف المطلوب (حرفين على الأقل)</small>
+            }
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn-primary-action"
+              [disabled]="adjustForm.invalid || adjustLoading || !selectedUserId">
+              @if (adjustLoading) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                جاري الحفظ...
+              } @else {
+                <i class="fa-solid fa-check me-2"></i> تأكيد العملية
+              }
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Transactions -->
+      <section class="tx-card">
+        <div class="tx-header">
+          <h5 class="section-title m-0">
+            <i class="fa-solid fa-clock-rotate-left me-2"></i>
+            سجل المعاملات
+            <span class="badge-count">{{ totalCount }}</span>
+          </h5>
+
+          <div class="tx-tools">
+            <div class="search-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="search" class="form-control" [(ngModel)]="searchTerm" [ngModelOptions]="{standalone: true}"
+                placeholder="ابحث في المعاملات...">
+            </div>
+
+            <select class="form-select" [(ngModel)]="filterType" [ngModelOptions]="{standalone: true}">
+              <option value="">كل الأنواع</option>
+              <option value="إضافة">إضافة</option>
+              <option value="خصم">خصم</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="tx-table-wrap">
+          @if (loadingTx) {
+            <div class="tx-loading">
+              <div class="spinner-border" role="status"><span class="visually-hidden">...</span></div>
+            </div>
+          }
+
+          @if (!selectedUserId && !loadingTx) {
+            <div class="tx-empty-state">
+              <i class="fa-regular fa-circle-user"></i>
+              <p>اختر {{ userType === 'Client' ? 'عميل' : 'سائق' }} من القائمة لعرض المعاملات</p>
+            </div>
+          } @else {
+            <table class="tx-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>النوع</th>
+                  <th>المبلغ</th>
+                  <th>الرصيد بعد العملية</th>
+                  <th>الوصف</th>
+                  <th>تم بواسطة</th>
+                  <th>التاريخ</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (tx of filteredTransactions; track tx.id) {
+                  <tr>
+                    <td>{{ tx.id }}</td>
+                    <td>
+                      <span class="type-pill" [class.credit]="tx.type === 'إضافة'" [class.debit]="tx.type === 'خصم'">
+                        <i class="fa-solid" [class.fa-arrow-up]="tx.type === 'إضافة'" [class.fa-arrow-down]="tx.type === 'خصم'"></i>
+                        {{ tx.type }}
+                      </span>
+                    </td>
+                    <td class="amount" [class.credit]="tx.type === 'إضافة'" [class.debit]="tx.type === 'خصم'">
+                      {{ tx.type === 'خصم' ? '-' : '+' }} {{ tx.amount | number }}
+                    </td>
+                    <td class="balance">{{ tx.balanceAfter | number }} ج.م</td>
+                    <td class="desc">{{ tx.description || '—' }}</td>
+                    <td>{{ tx.performedBy || '—' }}</td>
+                    <td dir="ltr">{{ formatDate(tx.createdAt) }}</td>
+                  </tr>
+                }
+                @empty {
+                  @if (!loadingTx) {
+                    <tr>
+                      <td colspan="7" class="empty-row">
+                        <i class="fa-regular fa-folder-open"></i>
+                        لا توجد معاملات لعرضها
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+
+        @if (totalPages > 1 && selectedUserId) {
+          <div class="tx-pagination">
+            <button class="page-btn" [disabled]="pageIndex === 1" (click)="onPageChange(pageIndex - 1)">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            @for (p of pages; track p) {
+              <button class="page-btn" [class.active]="p === pageIndex" (click)="onPageChange(p)">{{ p }}</button>
+            }
+            <button class="page-btn" [disabled]="pageIndex === totalPages" (click)="onPageChange(pageIndex + 1)">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+          </div>
+        }
+      </section>
+    </div>
+  </div>
+</div>
+}

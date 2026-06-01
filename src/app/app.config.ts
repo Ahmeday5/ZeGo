@@ -2,7 +2,11 @@
 
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import {
+  provideHttpClient,
+  withFetch,
+  withInterceptors,
+} from '@angular/common/http';
 import { authInterceptor } from './interceptors/auth.interceptor'; // تأكد من المسار ده صحيح عندك
 
 import { routes } from './app.routes';
@@ -13,8 +17,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
 
     // أهم سطرين في حياتك دلوقتي
-    provideHttpClient(
-      withInterceptors([authInterceptor]) // ← الـ Interceptor بتاع الـ Refresh Token هيشتغل هنا
-    ),
+    provideHttpClient(withInterceptors([authInterceptor])),
   ],
 };

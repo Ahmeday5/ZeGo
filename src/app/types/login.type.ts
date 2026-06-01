@@ -6,13 +6,21 @@ export interface LoginCredentials {
   rememberMe: boolean;
 }
 
-// استجابة الـ API الخام (من login أو refresh-token)
+// Raw response from login or refresh-token endpoint.
+// Handles both flat { accessToken } and nested { data: { accessToken } } formats.
 export interface RawAuthResponse {
   accessToken?: string;
   refreshToken?: string;
   expiresAt?: string;
   message?: any;
-  [k: string]: any; // عشان الـ API بيرجع حاجات زيادة زي statusCode و data
+  statusCode?: number;
+  data?: {
+    accessToken?: string;
+    refreshToken?: string;
+    expiresAt?: string;
+    [k: string]: any;
+  };
+  [k: string]: any;
 }
 
 // البيانات اللي هنخزنها في localStorage ونستخدمها داخل التطبيق

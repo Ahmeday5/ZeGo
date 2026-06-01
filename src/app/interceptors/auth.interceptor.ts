@@ -1,26 +1,30 @@
-// src/app/interceptors/auth.interceptor.ts
-
-import { inject } from '@angular/core';
 import {
   HttpInterceptorFn,
   HttpRequest,
   HttpHandlerFn,
   HttpEvent,
 } from '@angular/common/http';
-import { BehaviorSubject, from, Observable, throwError } from 'rxjs';
-import { catchError, filter, switchMap, take } from 'rxjs/operators';
+import { inject } from '@angular/core';
+import {
+  catchError,
+  switchMap,
+  filter,
+  take,
+  throwError,
+  BehaviorSubject,
+  Observable,
+  from,
+} from 'rxjs';
 import { AuthService } from '../services/auth.service';
-import { StoredUser } from '../types/login.type';
 import { Router } from '@angular/router';
+import { StoredUser } from '../types/login.type';
 
 let isRefreshing = false;
-
-// ده اللي بيخلّي كل الطلبات اللي جت أثناء الـ refresh تنتظر لحد ما التوكن الجديد يجي
 const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<any>,
-  next: HttpHandlerFn
+  next: HttpHandlerFn,
 ): Observable<HttpEvent<any>> => {
   const authService = inject(AuthService);
   const router = inject(Router); // لو حابب تستخدمه بعدين (اختياري)
@@ -67,7 +71,7 @@ export const authInterceptor: HttpInterceptorFn = (
                   setHeaders: {
                     Authorization: `Bearer ${newTokens.accessToken}`,
                   },
-                })
+                }),
               );
             }),
             catchError((refreshError) => {
@@ -78,7 +82,7 @@ export const authInterceptor: HttpInterceptorFn = (
               authService.logout(); // ده هينظف كل حاجة ويروح للـ login
 
               return throwError(() => refreshError);
-            })
+            }),
           );
         } else {
           // في طلب تاني جاله 401 بس احنا بالفعل بنعمل refresh
@@ -92,15 +96,15 @@ export const authInterceptor: HttpInterceptorFn = (
                   setHeaders: {
                     Authorization: `Bearer ${token!}`,
                   },
-                })
+                }),
               );
-            })
+            }),
           );
         }
       }
 
       // أي إيرور تاني غير 401 → نرميه عادي
       return throwError(() => error);
-    })
+    }),
   );
 };

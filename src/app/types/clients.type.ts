@@ -2,6 +2,7 @@ export interface allClient {
   id: number;
   name: string;
   phone: string;
+  governorate?: string;
   email: string;
   isActive: boolean;
   profileImageUrl: string;

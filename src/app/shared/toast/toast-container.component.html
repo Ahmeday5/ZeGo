@@ -1,0 +1,17 @@
+<div class="toast-stack" aria-live="polite" aria-atomic="true">
+  @for (t of toasts(); track t.id) {
+    <div class="toast-card" [class]="'variant-' + t.variant" role="status">
+      <div class="toast-icon">
+        <i class="fa-solid" [class]="iconOf(t.variant)"></i>
+      </div>
+      <div class="toast-body">
+        @if (t.title) { <div class="toast-title">{{ t.title }}</div> }
+        <div class="toast-message">{{ t.message }}</div>
+      </div>
+      <button type="button" class="toast-close" (click)="dismiss(t.id)" aria-label="إغلاق">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="toast-progress" [style.animation-duration.ms]="t.duration"></div>
+    </div>
+  }
+</div>

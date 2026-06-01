@@ -4,13 +4,19 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
 import { FormsModule } from '@angular/forms';
 import { DriverDetail } from '../../../types/driver.type';
+import { ToastService } from '../../../shared/toast/toast.service';
+import { ConfirmService } from '../../../shared/confirm-dialog/confirm.service';
+
+declare var bootstrap: any;
 
 interface Document {
   title: string;
-  url: string;
+  url?: string;
+  images?: string[];
   expiryDate?: string;
-  Number?: string;
+  number?: string;
   numberTitle?: string;
+  icon: string;
 }
 
 @Component({
@@ -21,7 +27,7 @@ interface Document {
   styleUrl: './driver-approvals.component.scss',
 })
 export class DriverApprovalsComponent implements OnInit {
-  selectedImage: string = '';
+  selectedImage = '';
   noDriverMessage: string | null = null;
   DriverMessage: string | null = null;
 
@@ -30,22 +36,18 @@ export class DriverApprovalsComponent implements OnInit {
   percentageSuccessMsg: string | null = null;
   percentageErrorMsg: string | null = null;
 
-  constructor(
-    private cdr: ChangeDetectorRef,
-    private route: ActivatedRoute,
-    private api: ApiService,
-  ) {}
-
-  // دالة لعرض الصورة في الـ modal
-  openImageModal(src: string) {
-    this.selectedImage = src;
-    this.cdr.detectChanges();
-  }
+  loading = true;
 
   driver: DriverDetail | null = null;
   documents: Document[] = [];
 
-  loading = true;
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private api: ApiService,
+    private toast: ToastService,
+    private confirm: ConfirmService,
+  ) {}
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -56,37 +58,61 @@ export class DriverApprovalsComponent implements OnInit {
     });
   }
 
+  openImageModal(src: string) {
+    this.selectedImage = src;
+    this.cdr.detectChanges();
+  }
+
   loadDriverDetails(id: number): void {
     this.loading = true;
+
     this.api.getDriverById(id).subscribe({
       next: (res) => {
         this.driver = res.data;
 
-        // نعبي المستندات
         this.documents = [
           {
-            title: 'رخصة القيادة',
+            title: 'رخصة السائق',
             url: this.driver?.licenseImageUrl || '/assets/img/no-image.png',
-            expiryDate: this.driver?.expiryDate,
-            Number: this.driver?.licenseNumber,
-            numberTitle: 'رقم الرخصة',
+            expiryDate: this.driver?.licenseExpiryDate,
+            icon: 'fa-id-card',
           },
+
           {
             title: 'البطاقة الشخصية',
-            url: this.driver?.nationalIdImageUrl || '/assets/img/no-image.png',
-            Number: this.driver?.nationalId,
-            numberTitle: 'رقم البطاقة',
+            images: [
+              this.driver?.nationalIdImageUrlFront,
+              this.driver?.nationalIdImageUrlBehind,
+            ].filter((x): x is string => !!x),
+            number: this.driver?.nationalId,
+            numberTitle: 'الرقم القومي',
+            icon: 'fa-address-card',
           },
+
+          {
+            title: 'رخصة المركبة',
+            url: this.driver?.carLicenseUrl || '/assets/img/no-image.png',
+            icon: 'fa-car-side',
+          },
+
           {
             title: 'صورة السيارة',
             url: this.driver?.carImgUrl || '/assets/img/no-image.png',
-            Number: this.driver?.carNumber,
+            number: this.driver?.carNumber,
             numberTitle: 'رقم السيارة',
+            icon: 'fa-car',
+          },
+
+          {
+            title: 'صورة البروفايل',
+            url: this.driver?.driverProfile || '/assets/img/no-image.png',
+            icon: 'fa-user',
           },
         ];
 
         this.loading = false;
       },
+
       error: (err) => {
         console.error('فشل جلب بيانات السائق', err);
         this.loading = false;
@@ -98,64 +124,63 @@ export class DriverApprovalsComponent implements OnInit {
     return this.driver?.id || null;
   }
 
-  deactivatedDriver(id: number) {
-    if (confirm('هل أنت متأكد من حظر هذه السائق')) {
-      this.loading = true;
-      this.api.deactivateDriver(id).subscribe({
-        next: () => {
-          this.DriverMessage = 'تم حظر السائق بنجاح';
-          setTimeout(() => {
-            this.DriverMessage = null;
-            this.loadDriverDetails(id);
-          }, 2000);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error(`خطأ في حظر السائق ${id}:`, error);
-          this.noDriverMessage = 'فشل حظر السائق';
-          this.loading = false;
-          setTimeout(() => {
-            this.noDriverMessage = null;
-          }, 2000);
-          this.cdr.detectChanges();
-        },
-      });
-    }
+  async deactivatedDriver(id: number) {
+    const ok = await this.confirm.ask({
+      title: 'حظر السائق',
+      message: 'هل أنت متأكد من حظر هذا السائق؟',
+      variant: 'danger',
+      icon: 'fa-ban',
+      confirmText: 'نعم، حظر',
+    });
+    if (!ok) return;
+
+    this.loading = true;
+    this.api.deactivateDriver(id).subscribe({
+      next: () => {
+        this.toast.success('تم حظر السائق بنجاح', 'نجاح');
+        this.loadDriverDetails(id);
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error(`خطأ في حظر السائق ${id}:`, error);
+        this.toast.error('فشل حظر السائق', 'خطأ');
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
-  activatedDriver(id: number) {
-    if (confirm('هل أنت متأكد من قبول هذه السائق')) {
-      this.loading = true;
-      this.api.activateDriver(id).subscribe({
-        next: () => {
-          this.DriverMessage = 'تم قبول السائق بنجاح';
-          setTimeout(() => {
-            this.DriverMessage = null;
-            this.loadDriverDetails(id);
-          }, 2000);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error(`خطأ في قبول السائق ${id}:`, error);
-          this.noDriverMessage = 'فشل قبول السائق';
-          this.loading = false;
-          setTimeout(() => {
-            this.noDriverMessage = null;
-          }, 2000);
-          this.cdr.detectChanges();
-        },
-      });
-    }
-  }
+  async activatedDriver(id: number) {
+    const ok = await this.confirm.ask({
+      title: 'قبول السائق',
+      message: 'هل أنت متأكد من قبول هذا السائق؟',
+      variant: 'success',
+      icon: 'fa-user-check',
+      confirmText: 'نعم، قبول',
+    });
+    if (!ok) return;
 
-  // ------------------- داخل الكلاس -------------------
+    this.loading = true;
+    this.api.activateDriver(id).subscribe({
+      next: () => {
+        this.toast.success('تم قبول السائق بنجاح', 'نجاح');
+        this.loadDriverDetails(id);
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error(`خطأ في قبول السائق ${id}:`, error);
+        this.toast.error('فشل قبول السائق', 'خطأ');
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
 
   prepareEditPercentage() {
-    this.newProfitPercentage = this.driver?.profitPercentage
-      ? parseFloat(this.driver.profitPercentage)
-      : null;
+    this.newProfitPercentage = this.driver?.profitPercentage ?? null;
+
     this.percentageSuccessMsg = null;
     this.percentageErrorMsg = null;
   }
@@ -172,36 +197,24 @@ export class DriverApprovalsComponent implements OnInit {
       .subscribe({
         next: (res) => {
           if (res.success) {
-            this.percentageSuccessMsg =
-              res.message || 'تم تحديث نسبة الربح بنجاح';
-
-            // تحديث العرض مباشرة
+            this.toast.success(res.message || 'تم تحديث نسبة الربح بنجاح', 'نجاح');
             if (this.driver) {
-              this.driver.profitPercentage =
-                this.newProfitPercentage!.toFixed(2);
+              this.driver.profitPercentage = this.newProfitPercentage!;
             }
-
-            // إغلاق المودال بعد 1.8 ثانية تقريباً
-            setTimeout(() => {
-              const modal = document.getElementById('editPercentageModal');
-              if (modal) {
-                // @ts-ignore
-                bootstrap.Modal.getInstance(modal)?.hide();
-              }
-              this.loadingPercentage = false;
-              this.newProfitPercentage = null;
-              this.percentageSuccessMsg = null;
-            }, 1800);
+            const modal = document.getElementById('editPercentageModal');
+            bootstrap.Modal.getInstance(modal)?.hide();
+            this.loadingPercentage = false;
+            this.newProfitPercentage = null;
           }
         },
         error: (err) => {
-          this.percentageErrorMsg = err.message || 'حدث خطأ أثناء تحديث النسبة';
+          this.toast.error(err.message || 'حدث خطأ أثناء تحديث النسبة', 'خطأ');
           this.loadingPercentage = false;
         },
       });
   }
 
-  formatDate(date: string | undefined): string {
+  formatDate(date?: string): string {
     if (!date) return 'غير متوفر';
     return date.split('T')[0];
   }

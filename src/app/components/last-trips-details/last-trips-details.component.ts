@@ -98,4 +98,18 @@ export class LastTripsDetailsComponent implements OnInit {
     };
     return colors[status] || '#6c757d';
   }
+
+  formatPhone(phone: string): string {
+    if (!phone) return '';
+
+    // يشيل أي حاجة مش رقم
+    let cleaned = phone.replace(/\D/g, '');
+
+    // لو الرقم مصري وبيبدأ بـ 01 → نحوله لـ 201
+    if (cleaned.startsWith('01')) {
+      cleaned = '2' + cleaned;
+    }
+
+    return cleaned;
+  }
 }

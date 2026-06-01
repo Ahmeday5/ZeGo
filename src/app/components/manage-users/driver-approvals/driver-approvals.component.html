@@ -1,233 +1,181 @@
 <div class="driver-approv mt-2">
   <div class="container-fluid">
+
+    <!-- HEADER -->
     <div class="row">
       <div class="banner col-12 p-0">
         <i class="fa-solid fa-id-card"></i>
         <h1 class="title-approv">تفاصيل السائق</h1>
-        <h2 class="title-review">راجع واقبل وثائق السائق </h2>
+        <h2 class="title-review">مراجعة واعتماد بيانات السائق</h2>
       </div>
     </div>
 
-    <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
-      <symbol id="check-circle-fill" viewBox="0 0 16 16">
-        <path
-          d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-      </symbol>
-      <symbol id="info-fill" viewBox="0 0 16 16">
-        <path
-          d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
-      </symbol>
-      <symbol id="exclamation-triangle-fill" viewBox="0 0 16 16">
-        <path
-          d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
-      </symbol>
-    </svg>
-
-    <div class="row">
-      <div class="col-12">
-        @if (noDriverMessage) {
-        <div class="mt-3 alert w-100 alert-danger d-flex align-items-center" role="alert">
-          <svg class="bi flex-shrink-0 me-2 icons-alert" role="img" aria-label="Danger:">
-            <use xlink:href="#exclamation-triangle-fill" />
-          </svg>
-          <div class="title-alert">{{ noDriverMessage }}</div>
-        </div>
-        }
-
-        @if (DriverMessage) {
-        <div class="mt-3 alert w-100 alert-success d-flex align-items-center" role="alert">
-          <svg class="bi flex-shrink-0 me-2 icons-alert" role="img" id="svg" aria-label="Success:">
-            <use xlink:href="#check-circle-fill" />
-          </svg>
-          <div class="title-alert">{{ DriverMessage }}</div>
-        </div>
-        }
-      </div>
+    <!-- LOADING -->
+    @if (loading) {
+    <div class="loading-overlay">
+      <div class="spinner-border text-primary"></div>
     </div>
+    }
 
+    <!-- MAIN DASHBOARD -->
     <div class="row mt-3">
-      <div class="cardParent">
-        @if (loading) {
-        <div
-          class="position-absolute top-50 start-50 translate-middle z-3 bg-white bg-opacity-75 w-100 h-100 d-flex align-items-center justify-content-center rounded">
-          <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-            <span class="visually-hidden">جاري التحميل...</span>
-          </div>
-        </div>
-        }
-        <div class="row">
-          <div class="col-md-6">
-            <div class="content">
-              <h6><span>الاسم :</span> {{ driver?.name }}</h6>
-              <h6><span>رقم الهاتف :</span> {{ driver?.phone }}</h6>
-              <h6><span>العنوان :</span> {{ driver?.address }}</h6>
-              <h6><span>تفاصيل السيارة :</span> {{ driver?.carModel }} - {{ driver?.carNumber }} - {{ driver?.carYear }}
-                -
-                {{ driver?.carColor }}</h6>
-              <h6><span>نوع السيارة :</span> {{ driver?.carType }}</h6>
-              <h6><span>نسبة الربح :</span> %{{ driver?.profitPercentage }}</h6>
-              <button class="btn btn-sm mb-2 edit-percentage-btn" data-bs-toggle="modal"
-                data-bs-target="#editPercentageModal" (click)="prepareEditPercentage()">
-                تعديل النسبة <i class="fa-solid fa-pen-to-square ms-1"></i>
-              </button>
-              <h6><span> المبلغ المستحق علي السائق :</span> {{ driver?.debt }}</h6>
-              <h6><span> متوسط التقييم :</span> {{ driver?.averageRating }}</h6>
-              <h6><span> تاريخ الانشاء :</span> {{ formatDate(driver?.createdAt) }}</h6>
-              <h6><span>الحالة :</span> {{ driver?.isActive ? 'نشط' : 'غير نشط' }}</h6>
-            </div>
-          </div>
 
-          @if(driver?.isActive == false){
-          <div class="col-md-6">
-            <div class="review">
-              <h2 class="title-review">في إنتظار المراجعة</h2>
-            </div>
-          </div>
-          }
-        </div>
+      <!-- DRIVER INFO -->
+      <div class="col-lg-4">
+        <div class="card-box">
 
-        <div class="row mt-3">
-          @for (doc of documents; track $index) {
-          <div class="col-xl-4 col-lg-6 col-md-6 col-12 mt-2">
-            <div class="card license-card" role="button" (click)='openImageModal(doc.url)' data-bs-toggle="modal"
-              data-bs-target="#imageModal" aria-label="فتح صورة رخصة السائق">
-              <div class="d-flex align-items-center gap-3">
-                <!-- علامة صح صغيرة -->
-                <div class="check-icon d-flex align-items-center justify-content-center">
-                  <i class="fa-solid fa-file"></i>
-                </div>
+          <h4>بيانات السائق</h4>
 
-                <!-- النصوص (العنوان وتاريخ) -->
-                <div class="flex-grow-1">
-                  <div class="fw-bold license-title">{{ doc.title }}</div>
-                  @if(doc.expiryDate) {
-                  <div class="license-expiry">تاريخ الصلاحية: <span class="fw-bold">{{doc.expiryDate}}</span>
-                  </div>
-                  }
-                  @if(doc.Number) {
-                  <div class="docNumber"> {{doc.numberTitle}} : <span class="fw-bold">{{doc.Number}}</span></div>
-                  }
-                </div>
+          <p><b>الاسم:</b> {{ driver?.name }}</p>
+          <p><b>الهاتف:</b> {{ driver?.phone }}</p>
+          <p><b>المحافظة:</b> {{ driver?.government }}</p>
+          <p><b>العنوان:</b> {{ driver?.address }}</p>
 
-                <!-- أيقونة الملف/الصورة على اليمين -->
-                <div class="file-icon ms-3">
-                  <i class="fa fa-check"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-          }
+          <p>
+            <b>الحالة:</b>
+            <span [class.active]="driver?.isActive" [class.inactive]="!driver?.isActive">
+              {{ driver?.isActive ? 'نشط' : 'غير نشط' }}
+            </span>
+          </p>
 
-          <!-- Modal بوت استراب لعرض الصورة -->
-          <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                  <img [src]="selectedImage" style="max-width: 100%; height: auto;" alt="صورة معاينة">
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <p><b>التقييم:</b> {{ driver?.averageRating }}</p>
+          <p><b>تاريخ الإنشاء:</b> {{ formatDate(driver?.createdAt) }}</p>
 
-          <div class="col-12 d-flex justify-content-around mt-4">
-            @if(driver?.isActive == true && driverId){
-            <button class="btn btn-refud" (click)="deactivatedDriver(driverId)"> حظر <i
-                class="fa-solid fa-ban"></i></button>
-            }@if(driver?.isActive == false && driverId){
-            <button class="btn btn-accept" type="submit" (click)="activatedDriver(driverId)"> قبول <i
-                class="fa fa-check"></i></button>
-            }
-          </div>
         </div>
       </div>
+
+      <!-- VEHICLE -->
+      <div class="col-lg-4">
+        <div class="card-box">
+
+          <h4>بيانات السيارة</h4>
+
+          <p><b>الموديل:</b> {{ driver?.carModel }}</p>
+          <p><b>النوع:</b> {{ driver?.carType }}</p>
+          <p><b>السنة:</b> {{ driver?.carYear }}</p>
+          <p><b>اللون:</b> {{ driver?.carColor }}</p>
+          <p><b>الرقم:</b> {{ driver?.carNumber }}</p>
+
+          <img [src]="driver?.carImgUrl" class="preview-img" />
+
+        </div>
+      </div>
+
+      <!-- FINANCIAL -->
+      <div class="col-lg-4">
+        <div class="card-box">
+
+          <h4>البيانات المالية</h4>
+
+          <p><b>نسبة الربح:</b> {{ driver?.profitPercentage }}%</p>
+
+          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editPercentageModal"
+            (click)="prepareEditPercentage()">
+            تعديل النسبة
+          </button>
+
+          <p class="mt-2"><b>المديونية:</b> {{ driver?.debt }}</p>
+
+        </div>
+      </div>
+
     </div>
 
-    <!--               مودال تعديل النسبة            -->
-    <div class="modal fade" id="editPercentageModal" tabindex="-1" aria-labelledby="editPercentageModalLabel"
-      aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+    <!-- DOCUMENTS -->
+    <div class="row mt-4">
 
-          <!-- Header -->
-          <div class="modal-header bg-header text-white" style="border-bottom: none;">
-            <h5 class="modal-title fw-bold" id="editPercentageModalLabel">
-              تعديل نسبة ربح السائق
-            </h5>
+      <div class="col-12">
+        <h3 class="section-title">المستندات</h3>
+      </div>
+
+      @for (doc of documents; track $index) {
+
+      <div class="col-lg-4 col-md-6 mt-3">
+
+        <div class="doc-card" (click)="doc.url && openImageModal(doc.url)" data-bs-toggle="modal"
+          data-bs-target="#imageModal">
+
+          <div class="doc-header">
+            <i class="fa {{doc.icon}}"></i>
+            <h5>{{ doc.title }}</h5>
           </div>
-
-          <!-- Body -->
-          <div class="modal-body p-4">
-
-            <!-- عرض اسم السائق -->
-            <div class="text-center mb-4">
-              <h6 class="text-muted">السائق</h6>
-              <h5 class="fw-bold">{{ driver?.name }}</h5>
-            </div>
-
-            <!-- النسبة الحالية -->
-            <div class="current-percentage mb-4 p-3 bg-light rounded text-center">
-              النسبة الحالية:
-              <span class="fs-4 fw-bold text-primary">{{ driver?.profitPercentage }}%</span>
-            </div>
-
-            <!-- Form -->
-            <form #percentageForm="ngForm">
-              <div class="mb-3">
-                <label for="newPercentage" class="form-label fw-bold">النسبة الجديدة (%)</label>
-                <div class="input-group input-group-lg">
-                  <input type="number" class="form-control text-center" id="newPercentage" name="newPercentage"
-                    [(ngModel)]="newProfitPercentage" min="1" max="100" step="0.1" required #newPerc="ngModel"
-                    [class.is-invalid]="newPerc.touched && newPerc.invalid" placeholder="مثال: 25" />
-                  <span class="input-group-text">%</span>
-                </div>
-                @if (newPerc.touched && (newPerc.errors?.['required'] || newPerc.errors?.['min'] ||
-                newPerc.errors?.['max'])) {
-                <div class="invalid-feedback d-block text-center">
-                  أدخل نسبة بين 1 و 100
-                </div>
-                }
-              </div>
-
-              <!-- رسائل نجاح / خطأ داخل المودال -->
-              @if (percentageSuccessMsg) {
-              <div class="alert alert-success d-flex align-items-center mt-3" role="alert">
-                <i class="fa-solid fa-circle-check me-2"></i>
-                {{ percentageSuccessMsg }}
-              </div>
-              }
-              @if (percentageErrorMsg) {
-              <div class="alert alert-danger d-flex align-items-center mt-3" role="alert">
-                <i class="fa-solid fa-circle-exclamation me-2"></i>
-                {{ percentageErrorMsg }}
-              </div>
-              }
-            </form>
+          
+          @if (doc.images?.length) {
+          <div class="multi-img">
+            <img [src]="doc.images?.[0] ?? '/assets/img/no-image.png'" />
+            <img [src]="doc.images?.[1] ?? '/assets/img/no-image.png'" />
           </div>
+          }
 
-          <!-- Footer -->
-          <div class="modal-footer bg-light border-0 justify-content-center pb-4">
-            <button type="button" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal">
-              إلغاء
-            </button>
-            <button type="button" class="btn btn-lg edit-percentage-btn"
-              [disabled]="loadingPercentage || !newProfitPercentage || newProfitPercentage < 0 || newProfitPercentage > 100"
-              (click)="updateDriverPercentage()">
-              @if (loadingPercentage) {
-              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-              جاري الحفظ...
-              } @else {
-              حفظ التغييرات
-              }
-            </button>
-          </div>
+          @if (doc.url) {
+          <img [src]="doc.url" class="doc-img" />
+          }
+
+          @if (doc.number) {
+          <p>{{ doc.numberTitle }}: {{ doc.number }}</p>
+          }
+
+          @if (doc.expiryDate) {
+          <p>انتهاء: {{ doc.expiryDate }}</p>
+          }
+
         </div>
+
+      </div>
+
+      }
+
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="row mt-4 text-center">
+
+      @if (driver?.isActive) {
+      <button class="btn btn-danger w-25" (click)="deactivatedDriver(driverId!)">
+        حظر السائق
+      </button>
+      }
+
+      @if (!driver?.isActive) {
+      <button class="btn btn-success w-25" (click)="activatedDriver(driverId!)">
+        قبول السائق
+      </button>
+      }
+
+    </div>
+
+  </div>
+
+  <!-- IMAGE MODAL -->
+  <div class="modal fade" id="imageModal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+
+        <div class="modal-body text-center">
+          <img [src]="selectedImage" class="modal-img" />
+        </div>
+
       </div>
     </div>
   </div>
+
+  <!-- EDIT MODAL -->
+  <div class="modal fade" id="editPercentageModal">
+    <div class="modal-dialog modal-dialog-centered">
+
+      <div class="modal-content p-3">
+
+        <h5>تعديل نسبة الربح</h5>
+
+        <input type="number" class="form-control mt-3" [(ngModel)]="newProfitPercentage" />
+
+        <button class="btn btn-primary mt-3" (click)="updateDriverPercentage()" [disabled]="loadingPercentage">
+          حفظ
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+
 </div>

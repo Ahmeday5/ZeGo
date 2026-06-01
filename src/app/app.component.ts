@@ -5,11 +5,19 @@ import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { SidebarComponent } from './layout/sidebar/sidebar.component';
+import { ToastContainerComponent } from './shared/toast/toast-container.component';
+import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, SidebarComponent],
+  imports: [
+    RouterOutlet,
+    CommonModule,
+    SidebarComponent,
+    ToastContainerComponent,
+    ConfirmDialogComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })

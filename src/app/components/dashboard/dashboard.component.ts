@@ -104,7 +104,6 @@ export class DashboardComponent {
 
     this.apiService.getTotalSummary().subscribe({
       next: (data: DashboardSummaryData) => {
-        console.log('API Data:', data);
 
         this.summaryData = data;
         // بنبني الكروت ديناميكيًا من الداتا
@@ -184,7 +183,6 @@ export class DashboardComponent {
 
     this.apiService.getTripsStatus().subscribe({
       next: (data: DashboardTripsStatusData[]) => {
-        console.log('API Data:', data);
         this.TripsStatus = data;
 
         this.TripsStatusCards = data.map((item) => ({
