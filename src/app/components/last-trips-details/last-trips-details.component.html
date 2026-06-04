@@ -1,128 +1,214 @@
-<div class="container py-5">
-  <div class="card shadow-lg border-0">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 fw-bold">تفاصيل الرحلة رقم {{ trip?.tripId || 'جاري التحميل...' }}</h4>
-      <button class="btn btn-light" (click)="goBack()">
-        رجوع <i class="fa-solid fa-arrow-left"></i>
+<div class="trip-details-page" dir="rtl">
+  @if (loading) {
+  <!-- ============ Loading ============ -->
+  <div class="state-box">
+    <div class="spinner-border text-primary" style="width: 3.5rem; height: 3.5rem"></div>
+    <p class="mt-3 mb-0 text-muted">جاري تحميل تفاصيل الرحلة...</p>
+  </div>
+  } @else if (errorMessage) {
+  <!-- ============ Error ============ -->
+  <div class="state-box">
+    <div class="error-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <p class="mt-3 mb-3 fw-bold">{{ errorMessage }}</p>
+    <button class="btn btn-outline-primary" (click)="goBack()">
+      <i class="fa-solid fa-arrow-right ms-1"></i> رجوع
+    </button>
+  </div>
+  } @else if (trip) {
+  <!-- ============ Header ============ -->
+  <header class="page-header">
+    <div class="header-info">
+      <span class="trip-badge">#{{ trip.tripId }}</span>
+      <div>
+        <h1 class="header-title">تفاصيل الرحلة</h1>
+        <p class="header-sub">
+          <i class="fa-regular fa-clock"></i> {{ trip.createdAt | date: 'medium' }}
+          <span class="dot">•</span> {{ trip.timeAgo }}
+        </p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="status-pill" [style.--pill]="getStatusColor(trip.status)">
+        <span class="status-dot"></span>{{ getStatusInArabic(trip.status) }}
+      </span>
+      <button class="btn btn-back" (click)="goBack()">
+        رجوع <i class="fa-solid fa-arrow-left ms-1"></i>
       </button>
     </div>
+  </header>
 
-    <div class="card-body">
-      @if (loading) {
-      <div class="text-center py-5">
-        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;"></div>
-        <p class="mt-3">جاري تحميل تفاصيل الرحلة...</p>
+  <!-- ============ Quick stats ============ -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon price"><i class="fa-solid fa-sack-dollar"></i></div>
+      <div>
+        <span class="stat-label">السعر المقترح</span>
+        <span class="stat-value">{{ trip.proposedPrice | number: '1.0-2' }} <small>ج.م</small></span>
       </div>
-      } @else if (errorMessage) {
-      <div class="alert alert-danger text-center">
-        {{ errorMessage }}
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon pay"><i [class]="getPaymentIcon(trip.paymentMethod)"></i></div>
+      <div>
+        <span class="stat-label">طريقة الدفع</span>
+        <span class="stat-value sm">{{ getPaymentMethodInArabic(trip.paymentMethod) }}</span>
       </div>
-      } @else if (trip) {
-      <div class="row g-4">
-        <!-- معلومات الرحلة -->
-        <div class="col-lg-6">
-          <h5 class="text-primary border-bottom pb-2 mb-3">بيانات الرحلة</h5>
-          <div class="row mb-2">
-            <div class="col-5 fw-bold">الحالة:</div>
-            <div class="col-7">
-              <span class="badge fs-6 px-3 py-2" [style.backgroundColor]="getStatusColor(trip.status)">
-                {{ getStatusInArabic(trip.status) }}
-              </span>
-            </div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-5 fw-bold">السعر المقترح:</div>
-            <div class="col-7">{{ trip.proposedPrice | number:'1.2-2' }} جنيه</div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-5 fw-bold">تاريخ الإنشاء:</div>
-            <div class="col-7">{{ trip.createdAt | date:'medium' }}</div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-5 fw-bold">منذ:</div>
-            <div class="col-7">{{ trip.timeAgo }}</div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-5 fw-bold">نوع السيارة:</div>
-            <div class="col-7">{{ trip.carType }}</div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-5 fw-bold">عدد العروض:</div>
-            <div class="col-7">{{ trip.offerCount }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon car"><i [class]="getCarTypeIcon(trip.carType)"></i></div>
+      <div>
+        <span class="stat-label">نوع المركبة</span>
+        <span class="stat-value sm">{{ getCarTypeInArabic(trip.carType) }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon offers"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+      <div>
+        <span class="stat-label">عدد العروض</span>
+        <span class="stat-value">{{ trip.offerCount }}</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="content-grid">
+    <!-- ============ Route ============ -->
+    <div class="panel route-panel">
+      <h2 class="panel-title"><i class="fa-solid fa-route"></i> مسار الرحلة</h2>
+      <div class="route-line">
+        <div class="route-point pickup">
+          <span class="point-marker"><i class="fa-solid fa-circle-dot"></i></span>
+          <div class="point-body">
+            <span class="point-label">نقطة الانطلاق</span>
+            <span class="point-text">{{ trip.pickup || 'غير محدد' }}</span>
           </div>
         </div>
-
-        <!-- العميل -->
-        <div class="col-lg-6">
-          <h5 class="text-primary border-bottom pb-2 mb-3">العميل</h5>
-          <div class="row mb-2">
-            <div class="col-5 fw-bold">الاسم:</div>
-            <div class="col-7">{{ trip.client.name || 'غير محدد' }}</div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-5 fw-bold">رقم العميل:</div>
-            <div class="col-7">{{ trip.client.id || '-' }}</div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-5 fw-bold">رقم الهاتف:</div>
-            <div class="col-7 d-flex align-items-center gap-2">
-              <span>{{ trip.client.phone || '-' }}</span>
-
-              @if (trip.client.phone) {
-              <!-- اتصال -->
-              <a [href]="'tel:' + trip.client.phone" class="text-success fs-5" title="اتصال">
-                <i class="fa-solid fa-phone"></i>
-              </a>
-
-              <!-- واتساب -->
-              <a [href]="'https://wa.me/' + formatPhone(trip.client.phone)" target="_blank" class="text-success fs-5"
-                title="واتساب">
-                <i class="fa-brands fa-whatsapp"></i>
-              </a>
-              }
-            </div>
+        <div class="route-connector"></div>
+        <div class="route-point dropoff">
+          <span class="point-marker"><i class="fa-solid fa-location-dot"></i></span>
+          <div class="point-body">
+            <span class="point-label">الوجهة</span>
+            <span class="point-text">{{ trip.dropoff || 'غير محدد' }}</span>
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- السائق إن وجد -->
-        @if (trip.driver) {
-        <div class="col-12 mt-4">
-          <h5 class="text-primary border-bottom pb-2 mb-3">السائق</h5>
-          <div class="row">
-            <div class="col-md-4 fw-bold">الاسم:</div>
-            <div class="col-md-8">{{ trip.driver.name }}</div>
-          </div>
-          <div class="row">
-            <div class="col-md-4 fw-bold">رقم الهاتف:</div>
-            <div class="col-md-8 d-flex align-items-center gap-2">
-              <span>{{ trip.driver.phone }}</span>
+    <!-- ============ Trip meta ============ -->
+    <div class="panel">
+      <h2 class="panel-title"><i class="fa-solid fa-circle-info"></i> بيانات الرحلة</h2>
+      <ul class="info-list">
+        <li><span class="k">رقم الرحلة</span><span class="v">#{{ trip.tripId }}</span></li>
+        <li>
+          <span class="k">الحالة</span>
+          <span class="v">
+            <span class="status-pill sm" [style.--pill]="getStatusColor(trip.status)">
+              <span class="status-dot"></span>{{ getStatusInArabic(trip.status) }}
+            </span>
+          </span>
+        </li>
+        <li><span class="k">السعر المقترح</span><span class="v">{{ trip.proposedPrice | number: '1.2-2' }} ج.م</span></li>
+        <li><span class="k">طريقة الدفع</span><span class="v"><i [class]="getPaymentIcon(trip.paymentMethod)" class="me-1"></i> {{ getPaymentMethodInArabic(trip.paymentMethod) }}</span></li>
+        <li><span class="k">نوع المركبة</span><span class="v"><i [class]="getCarTypeIcon(trip.carType)" class="me-1"></i> {{ getCarTypeInArabic(trip.carType) }}</span></li>
+        <li><span class="k">عدد العروض</span><span class="v">{{ trip.offerCount }}</span></li>
+        <li><span class="k">يوجد سائق</span><span class="v">
+          @if (trip.hasDriver) {<span class="chip yes"><i class="fa-solid fa-check"></i> نعم</span>}
+          @else {<span class="chip no"><i class="fa-solid fa-xmark"></i> لا</span>}
+        </span></li>
+        <li><span class="k">تاريخ الإنشاء</span><span class="v">{{ trip.createdAt | date: 'full' }}</span></li>
+        <li><span class="k">منذ</span><span class="v">{{ trip.timeAgo }}</span></li>
+      </ul>
+    </div>
 
-              <!-- اتصال -->
-              <a [href]="'tel:' + trip.driver.phone" class="text-success fs-5" title="اتصال">
-                <i class="fa-solid fa-phone"></i>
-              </a>
-
-              <!-- واتساب -->
-              <a [href]="'https://wa.me/' + formatPhone(trip.driver.phone)" target="_blank" class="text-success fs-5"
-                title="واتساب">
-                <i class="fa-brands fa-whatsapp"></i>
-              </a>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-4 fw-bold">التقييم:</div>
-            <div class="col-md-8">{{ trip.driver.rating || 'لا يوجد تقييم' }}</div>
-          </div>
+    <!-- ============ Client ============ -->
+    <div class="panel">
+      <h2 class="panel-title"><i class="fa-solid fa-user"></i> بيانات العميل</h2>
+      <div class="person-head">
+        <div class="avatar avatar-fallback">{{ (trip.client.name || '؟').charAt(0) }}</div>
+        <div>
+          <span class="person-name">{{ trip.client.name || 'غير محدد' }}</span>
+          <span class="person-id">معرّف العميل: {{ trip.client.id || '-' }}</span>
         </div>
-        } @else {
-        <div class="col-12 mt-4">
-          <div class="alert alert-info text-center fw-bold">
-            الرحلة بدون سائق حاليًا
-          </div>
-        </div>
-        }
+      </div>
+      <ul class="info-list">
+        <li><span class="k">الاسم</span><span class="v">{{ trip.client.name || 'غير محدد' }}</span></li>
+        <li><span class="k">رقم العميل</span><span class="v">{{ trip.client.id || '-' }}</span></li>
+        <li>
+          <span class="k">رقم الهاتف</span>
+          <span class="v" dir="ltr">{{ trip.client.phone || '-' }}</span>
+        </li>
+      </ul>
+      @if (trip.client.phone) {
+      <div class="contact-actions">
+        <a [href]="'tel:' + trip.client.phone" class="contact-btn call"><i class="fa-solid fa-phone"></i> اتصال</a>
+        <a [href]="'https://wa.me/' + formatPhone(trip.client.phone)" target="_blank" class="contact-btn wa"><i class="fa-brands fa-whatsapp"></i> واتساب</a>
       </div>
       }
     </div>
+
+    <!-- ============ Driver ============ -->
+    @if (trip.driver) {
+    <div class="panel">
+      <h2 class="panel-title"><i class="fa-solid fa-id-card"></i> بيانات السائق</h2>
+      <div class="person-head">
+        @if (trip.driver.profilePic) {
+        <img class="avatar" [src]="imageUrl(trip.driver.profilePic)" alt="صورة السائق" (error)="onImageError($event)" />
+        } @else {
+        <div class="avatar avatar-fallback">{{ (trip.driver.name || '؟').charAt(0) }}</div>
+        }
+        <div>
+          <span class="person-name">{{ trip.driver.name }}</span>
+          <span class="person-id">معرّف السائق: {{ trip.driver.id }}</span>
+          <span class="rating">
+            <i class="fa-solid fa-star"></i>
+            {{ trip.driver.rating ? (trip.driver.rating | number: '1.1-1') : 'لا يوجد تقييم' }}
+          </span>
+        </div>
+      </div>
+      <ul class="info-list">
+        <li><span class="k">الاسم</span><span class="v">{{ trip.driver.name }}</span></li>
+        <li><span class="k">معرّف السائق</span><span class="v">{{ trip.driver.id }}</span></li>
+        <li><span class="k">رقم الهاتف</span><span class="v" dir="ltr">{{ trip.driver.phone }}</span></li>
+        <li><span class="k">التقييم</span><span class="v">{{ trip.driver.rating ? (trip.driver.rating | number: '1.1-1') : 'لا يوجد تقييم' }}</span></li>
+      </ul>
+      <div class="contact-actions">
+        <a [href]="'tel:' + trip.driver.phone" class="contact-btn call"><i class="fa-solid fa-phone"></i> اتصال</a>
+        <a [href]="'https://wa.me/' + formatPhone(trip.driver.phone)" target="_blank" class="contact-btn wa"><i class="fa-brands fa-whatsapp"></i> واتساب</a>
+      </div>
+    </div>
+
+    <!-- ============ Driver car ============ -->
+    @if (trip.driver.car) {
+    <div class="panel car-panel">
+      <h2 class="panel-title"><i class="fa-solid fa-car-side"></i> بيانات المركبة</h2>
+      <div class="car-layout">
+        @if (trip.driver.car.image) {
+        <img class="car-image" [src]="imageUrl(trip.driver.car.image)" alt="صورة المركبة" (error)="onImageError($event)" />
+        } @else {
+        <div class="car-image car-image-fallback"><i class="fa-solid fa-car"></i></div>
+        }
+        <ul class="info-list flex-fill">
+          <li><span class="k">النوع</span><span class="v"><i [class]="getCarTypeIcon(trip.driver.car.type)" class="me-1"></i> {{ getCarTypeInArabic(trip.driver.car.type) }}</span></li>
+          <li><span class="k">الموديل</span><span class="v">{{ trip.driver.car.model || '-' }}</span></li>
+          <li><span class="k">سنة الصنع</span><span class="v">{{ trip.driver.car.year || '-' }}</span></li>
+          <li>
+            <span class="k">اللون</span>
+            <span class="v color-cell">
+              <span class="color-swatch" [style.backgroundColor]="parseCarColor(trip.driver.car.color)"></span>
+              <span dir="ltr">{{ trip.driver.car.color || '-' }}</span>
+            </span>
+          </li>
+          <li><span class="k">رقم اللوحة</span><span class="v"><span class="plate" dir="ltr">{{ trip.driver.car.plate || '-' }}</span></span></li>
+        </ul>
+      </div>
+    </div>
+    }
+    } @else {
+    <div class="panel no-driver-panel">
+      <div class="no-driver">
+        <i class="fa-solid fa-user-slash"></i>
+        <p class="mb-0">الرحلة بدون سائق حاليًا</p>
+      </div>
+    </div>
+    }
   </div>
+  }
 </div>

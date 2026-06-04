@@ -112,4 +112,71 @@ export class LastTripsDetailsComponent implements OnInit {
 
     return cleaned;
   }
+
+  /** يبني رابط الصورة الكامل من المسار النسبي الراجع من الـ API */
+  imageUrl(path: string | null | undefined): string {
+    if (!path) return '';
+    if (/^https?:\/\//i.test(path)) return path;
+    return `${this.imageBaseUrl}${path}`;
+  }
+
+  /** بديل عند فشل تحميل الصورة */
+  onImageError(event: Event): void {
+    (event.target as HTMLImageElement).src = this.fallbackImage;
+  }
+
+  /** طريقة الدفع بالعربي */
+  getPaymentMethodInArabic(method: string): string {
+    const map: Record<string, string> = {
+      Cash: 'نقدي',
+      Wallet: 'المحفظة',
+      Card: 'بطاقة بنكية',
+      Visa: 'فيزا',
+    };
+    return map[method] || method;
+  }
+
+  getPaymentIcon(method: string): string {
+    const map: Record<string, string> = {
+      Cash: 'fa-solid fa-money-bill-wave',
+      Wallet: 'fa-solid fa-wallet',
+      Card: 'fa-solid fa-credit-card',
+      Visa: 'fa-brands fa-cc-visa',
+    };
+    return map[method] || 'fa-solid fa-circle-dollar-to-slot';
+  }
+
+  /** نوع المركبة بالعربي */
+  getCarTypeInArabic(type: string): string {
+    const map: Record<string, string> = {
+      Car: 'سيارة',
+      Motorcycle: 'دراجة نارية',
+      Bike: 'دراجة',
+      Truck: 'شاحنة',
+    };
+    return map[type] || type;
+  }
+
+  getCarTypeIcon(type: string): string {
+    const map: Record<string, string> = {
+      Car: 'fa-solid fa-car',
+      Motorcycle: 'fa-solid fa-motorcycle',
+      Bike: 'fa-solid fa-bicycle',
+      Truck: 'fa-solid fa-truck',
+    };
+    return map[type] || 'fa-solid fa-car-side';
+  }
+
+  /** يحوّل لون فلاتر (0xFFRRGGBB) إلى لون CSS (#RRGGBB) */
+  parseCarColor(color: string | null | undefined): string {
+    if (!color) return '#6c757d';
+    const match = color.match(/^0x[fF]{2}([0-9a-fA-F]{6})$/);
+    if (match) return `#${match[1]}`;
+    if (/^#?[0-9a-fA-F]{6}$/.test(color)) return color.startsWith('#') ? color : `#${color}`;
+    return color;
+  }
+
+  private readonly imageBaseUrl = 'https://zego.premiumasp.net';
+  private readonly fallbackImage =
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="120" height="120" fill="%23e9ecef"/><text x="50%" y="50%" font-size="48" fill="%23adb5bd" text-anchor="middle" dy=".35em">?</text></svg>';
 }

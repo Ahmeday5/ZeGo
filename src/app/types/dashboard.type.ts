@@ -39,10 +39,13 @@ export interface DriverInfo {
 export interface LastTripItem {
   tripId: number;
   client: ClientInfo;
+  pickup: string;
+  dropoff: string;
   status: string;
   createdAt: string;
   timeAgo: string;
   carType: string;
+  paymentMethod: string;
   proposedPrice: number;
   driver: DriverInfo | null;
   hasDriver: boolean;

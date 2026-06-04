@@ -1,8 +1,413 @@
-.bg-primary {
-  background: var(--main-color) !important;
-  color: var(--third-color) !important;
+// ===== ZeGo · Trip Details — senior production design =====
+$radius: 16px;
+$shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+$shadow-md: 0 4px 16px rgba(16, 24, 40, 0.08);
+$border: #e9edf2;
+$muted: #6b7280;
+$ink: #1f2733;
+
+:host {
+  display: block;
 }
 
-.text-primary {
-  color: var(--main-color) !important;
+.trip-details-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px 56px;
+  color: $ink;
+  font-family: inherit;
+}
+
+// ---------- States ----------
+.state-box {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  .error-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 34px;
+    color: #dc3545;
+    background: #fdecec;
+  }
+}
+
+// ---------- Header ----------
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px;
+  border-radius: $radius;
+  background: linear-gradient(135deg, var(--main-color, #1769ff), color-mix(in srgb, var(--main-color, #1769ff) 78%, #000));
+  color: #fff;
+  box-shadow: $shadow-md;
+  margin-bottom: 22px;
+
+  .header-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .trip-badge {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(4px);
+    font-weight: 800;
+    font-size: 20px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .header-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  .header-sub {
+    margin: 4px 0 0;
+    font-size: 13.5px;
+    opacity: 0.9;
+    .dot { margin: 0 6px; }
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-back {
+    background: #fff;
+    color: var(--main-color, #1769ff);
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 18px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    &:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18); }
+  }
+}
+
+// ---------- Status pill ----------
+.status-pill {
+  --pill: #6c757d;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  color: var(--pill);
+  background: color-mix(in srgb, var(--pill) 14%, #fff);
+  border: 1px solid color-mix(in srgb, var(--pill) 35%, #fff);
+
+  &.sm { font-size: 12.5px; padding: 4px 12px; }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--pill);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pill) 22%, transparent);
+  }
+}
+
+// ---------- Stats ----------
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 18px;
+  box-shadow: $shadow-sm;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  &:hover { transform: translateY(-2px); box-shadow: $shadow-md; }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    flex: 0 0 50px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    font-size: 21px;
+    color: #fff;
+
+    &.price { background: linear-gradient(135deg, #16a34a, #15803d); }
+    &.pay { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+    &.car { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    &.offers { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+  }
+
+  .stat-label { display: block; font-size: 12.5px; color: $muted; }
+  .stat-value {
+    display: block;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.2;
+    small { font-size: 13px; font-weight: 600; color: $muted; }
+    &.sm { font-size: 17px; }
+  }
+}
+
+// ---------- Content grid ----------
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 22px;
+  box-shadow: $shadow-sm;
+}
+
+.route-panel,
+.car-panel,
+.no-driver-panel {
+  grid-column: 1 / -1;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid $border;
+  color: $ink;
+
+  i { color: var(--main-color, #1769ff); }
+}
+
+// ---------- Info list ----------
+.info-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px dashed $border;
+    &:last-child { border-bottom: none; }
+  }
+
+  .k { color: $muted; font-size: 13.5px; font-weight: 600; flex: 0 0 auto; }
+  .v { font-weight: 700; font-size: 14px; text-align: left; }
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  &.yes { color: #15803d; background: #e7f6ec; }
+  &.no { color: #dc3545; background: #fdecec; }
+}
+
+// ---------- Route ----------
+.route-line {
+  position: relative;
+  padding-right: 4px;
+}
+
+.route-point {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+
+  .point-marker {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    color: #fff;
+    z-index: 1;
+  }
+  &.pickup .point-marker { background: #16a34a; }
+  &.dropoff .point-marker { background: #dc3545; }
+
+  .point-label { display: block; font-size: 12.5px; color: $muted; font-weight: 600; }
+  .point-text { display: block; font-weight: 700; font-size: 15px; line-height: 1.5; }
+}
+
+.route-connector {
+  width: 2px;
+  height: 28px;
+  margin: 4px 0 4px 0;
+  margin-right: 17px;
+  background: repeating-linear-gradient(to bottom, #cbd5e1 0 6px, transparent 6px 12px);
+}
+
+// ---------- Person (client / driver) ----------
+.person-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+
+  .avatar {
+    width: 64px;
+    height: 64px;
+    flex: 0 0 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid color-mix(in srgb, var(--main-color, #1769ff) 25%, #fff);
+  }
+  .avatar-fallback {
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--main-color, #1769ff);
+    background: color-mix(in srgb, var(--main-color, #1769ff) 12%, #fff);
+  }
+
+  .person-name { display: block; font-size: 18px; font-weight: 800; }
+  .person-id { display: block; font-size: 12.5px; color: $muted; margin-top: 2px; }
+  .rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #d97706;
+    i { color: #f59e0b; }
+  }
+}
+
+// ---------- Contact buttons ----------
+.contact-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+
+  .contact-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    color: #fff;
+    transition: transform 0.15s ease, filter 0.15s ease;
+    &:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
+    &.call { background: #16a34a; }
+    &.wa { background: #25d366; }
+  }
+}
+
+// ---------- Car ----------
+.car-layout {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+
+  .car-image {
+    width: 240px;
+    height: 160px;
+    flex: 0 0 240px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 1px solid $border;
+    background: #f8fafc;
+  }
+  .car-image-fallback {
+    display: grid;
+    place-items: center;
+    font-size: 48px;
+    color: #cbd5e1;
+  }
+  .flex-fill { flex: 1 1 320px; }
+}
+
+.color-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.color-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: $shadow-sm;
+}
+
+.plate {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1px solid $border;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+// ---------- No driver ----------
+.no-driver {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px;
+  color: $muted;
+  i { font-size: 40px; color: #cbd5e1; }
+  p { font-weight: 700; font-size: 15px; }
+}
+
+// ---------- Responsive ----------
+@media (max-width: 992px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .content-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .car-layout .car-image { flex: 1 1 100%; width: 100%; }
 }

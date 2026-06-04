@@ -92,23 +92,24 @@
 
       <div class="col-lg-4 col-md-6 mt-3">
 
-        <div class="doc-card" (click)="doc.url && openImageModal(doc.url)" data-bs-toggle="modal"
-          data-bs-target="#imageModal">
+        <div class="doc-card">
 
           <div class="doc-header">
             <i class="fa {{doc.icon}}"></i>
             <h5>{{ doc.title }}</h5>
           </div>
-          
+
           @if (doc.images?.length) {
           <div class="multi-img">
-            <img [src]="doc.images?.[0] ?? '/assets/img/no-image.png'" />
-            <img [src]="doc.images?.[1] ?? '/assets/img/no-image.png'" />
+            @for (img of doc.images; track $index) {
+            <img [src]="img" (click)="openImageModal(img)" data-bs-toggle="modal" data-bs-target="#imageModal" />
+            }
           </div>
           }
 
           @if (doc.url) {
-          <img [src]="doc.url" class="doc-img" />
+          <img [src]="doc.url" class="doc-img" (click)="openImageModal(doc.url)" data-bs-toggle="modal"
+            data-bs-target="#imageModal" />
           }
 
           @if (doc.number) {

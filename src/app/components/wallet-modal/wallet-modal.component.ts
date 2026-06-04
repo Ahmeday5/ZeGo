@@ -19,6 +19,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { ToastService } from '../../shared/toast/toast.service';
 import {
@@ -26,6 +27,8 @@ import {
   WalletTransaction,
   WalletUserType,
 } from '../../types/wallet.type';
+import { ClientsResponse } from '../../types/clients.type';
+import { DriversResponse } from '../../types/driver.type';
 
 interface WalletUserOption {
   id: number;
@@ -118,43 +121,69 @@ export class WalletModalComponent implements OnChanges {
     this.adjustForm.reset({ amount: null, type: 'Credit', description: '' });
   }
 
+  // الباك بيرجّع حد أقصى ~50 صف في الصفحة الواحدة، فلازم نلفّ على كل الصفحات
+  // عشان القائمة تجيب كل العملاء/السائقين (مش أول صفحة بس).
+  private readonly usersPageSize = 50;
+
   private loadUsers() {
     this.pickerLoading = true;
-    const params = new HttpParams()
-      .set(this.userType === 'Client' ? 'pageIndex' : 'PageIndex', '1')
-      .set(this.userType === 'Client' ? 'pageSize' : 'PageSize', '1000000000');
+    this.users = [];
+    this.fetchUsersPage(1, []);
+  }
 
-    if (this.userType === 'Client') {
-      this.api.getAllClients(params).subscribe({
-        next: (res) => {
-          this.users = (res.data || []).map((c) => ({
+  private fetchUsersPage(page: number, acc: WalletUserOption[]) {
+    const isClient = this.userType === 'Client';
+    const params = new HttpParams()
+      .set(isClient ? 'pageIndex' : 'PageIndex', page.toString())
+      .set(isClient ? 'pageSize' : 'PageSize', this.usersPageSize.toString());
+
+    const request: Observable<ClientsResponse | DriversResponse> = isClient
+      ? this.api.getAllClients(params)
+      : this.api.getAllDrivers(params);
+
+    request.subscribe({
+      next: (res) => {
+        let list: WalletUserOption[];
+        let totalCount: number;
+
+        if (isClient) {
+          const r = res as ClientsResponse;
+          list = (r.data || []).map((c) => ({
             id: c.id,
             name: c.name,
             phone: c.phone,
           }));
-          this.pickerLoading = false;
-          this.cdr.detectChanges();
-        },
-        error: () => {
-          this.pickerLoading = false;
-        },
-      });
-    } else {
-      this.api.getAllDrivers(params).subscribe({
-        next: (res) => {
-          this.users = (res.data?.data || []).map((d) => ({
+          totalCount = r.count || 0;
+        } else {
+          const r = res as DriversResponse;
+          list = (r.data?.data || []).map((d) => ({
             id: d.id,
             name: d.name,
             phone: d.phone,
           }));
+          totalCount = r.data?.totalCount || 0;
+        }
+
+        const all = [...acc, ...list];
+        const totalPages = Math.ceil(totalCount / this.usersPageSize);
+
+        // اعرض اللي وصل لحد دلوقتي، وكمّل باقي الصفحات لو موجودة
+        this.users = all;
+        this.cdr.detectChanges();
+
+        if (page < totalPages && list.length) {
+          this.fetchUsersPage(page + 1, all);
+        } else {
           this.pickerLoading = false;
           this.cdr.detectChanges();
-        },
-        error: () => {
-          this.pickerLoading = false;
-        },
-      });
-    }
+        }
+      },
+      error: () => {
+        this.users = acc;
+        this.pickerLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   get filteredUsers(): WalletUserOption[] {
