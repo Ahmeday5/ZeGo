@@ -31,11 +31,29 @@
       <span class="status-pill" [style.--pill]="getStatusColor(trip.status)">
         <span class="status-dot"></span>{{ getStatusInArabic(trip.status) }}
       </span>
+      <button
+        class="btn btn-cancel"
+        [disabled]="!isCancellable || cancelLoading"
+        (click)="cancelTrip()">
+        @if (cancelLoading) {
+          <span class="spinner-border spinner-border-sm ms-1"></span>
+        } @else {
+          <i class="fa-solid fa-ban ms-1"></i>
+        }
+        إلغاء الرحلة
+      </button>
       <button class="btn btn-back" (click)="goBack()">
         رجوع <i class="fa-solid fa-arrow-left ms-1"></i>
       </button>
     </div>
   </header>
+
+  @if (cancelMessage) {
+  <div class="cancel-toast" [class.success]="cancelIsSuccess" [class.error]="!cancelIsSuccess">
+    <i [class]="cancelIsSuccess ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+    {{ cancelMessage }}
+  </div>
+  }
 
   <!-- ============ Quick stats ============ -->
   <section class="stats-grid">

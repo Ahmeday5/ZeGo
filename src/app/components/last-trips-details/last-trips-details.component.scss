@@ -99,6 +99,43 @@ $ink: #1f2733;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     &:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18); }
   }
+
+  .btn-cancel {
+    background: #dc3545;
+    color: #fff;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 18px;
+    transition: transform 0.15s ease, filter 0.15s ease;
+    &:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); }
+    &:disabled { opacity: 0.55; cursor: not-allowed; }
+  }
+}
+
+// ---------- Cancel toast ----------
+.cancel-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14.5px;
+  margin-bottom: 18px;
+
+  &.success {
+    background: #e7f6ec;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+    i { color: #16a34a; }
+  }
+  &.error {
+    background: #fdecec;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    i { color: #dc3545; }
+  }
 }
 
 // ---------- Status pill ----------

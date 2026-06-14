@@ -19,6 +19,14 @@ export class LastTripsDetailsComponent implements OnInit {
   errorMessage: string | null = null;
   tripId!: number;
 
+  cancelLoading = false;
+  cancelMessage: string | null = null;
+  cancelIsSuccess = false;
+
+  get isCancellable(): boolean {
+    return this.trip?.status !== 'Completed' && this.trip?.status !== 'Cancelled';
+  }
+
   constructor(
     private route: ActivatedRoute,
     private apiService: ApiService,
@@ -73,6 +81,31 @@ export class LastTripsDetailsComponent implements OnInit {
 
   goBack() {
     this.location.back();
+  }
+
+  cancelTrip(): void {
+    if (!this.trip || !this.isCancellable || this.cancelLoading) return;
+    if (!confirm('هل أنت متأكد من إلغاء هذه الرحلة؟')) return;
+
+    this.cancelLoading = true;
+    this.cancelMessage = null;
+
+    this.apiService.cancelTrip(this.tripId).subscribe({
+      next: (res) => {
+        this.cancelLoading = false;
+        this.cancelIsSuccess = true;
+        this.cancelMessage = res.message || 'تم إلغاء الرحلة بنجاح';
+        if (this.trip) {
+          this.trip = { ...this.trip, status: 'Cancelled' };
+          this.tripCacheService.set(this.tripId, this.trip);
+        }
+      },
+      error: (err) => {
+        this.cancelLoading = false;
+        this.cancelIsSuccess = false;
+        this.cancelMessage = err.message || 'فشل إلغاء الرحلة';
+      },
+    });
   }
 
   getStatusInArabic(status: string): string {

@@ -611,6 +611,22 @@ export class ApiService {
       );
   }
 
+  /************************************Trips*******************************************/
+
+  cancelTrip(tripId: number): Observable<{ statusCode: number; message: string; data: null }> {
+    return this.http
+      .put<{ statusCode: number; message: string; data: null }>(
+        `${this.baseUrl}/api/Dashboard/trips/${tripId}/cancel`,
+        {},
+      )
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error(`خطأ في إلغاء الرحلة ${tripId}:`, error);
+          return throwError(() => new Error(this.resolveErrorMessage(error, `فشل إلغاء الرحلة ${tripId}`)));
+        }),
+      );
+  }
+
   /********************************************Helpers***************************************/
 
   private resolveErrorMessage(error: HttpErrorResponse, fallback: string): string {
