@@ -117,6 +117,12 @@ export class SidebarComponent implements OnInit, AfterViewInit {
       iconInactive: 'fas fa-headset',
     },
     {
+      label: 'Google Maps',
+      path: '/google-maps-usage',
+      iconActive: 'fas fa-map-location-dot text-success',
+      iconInactive: 'fas fa-map-location-dot',
+    },
+    {
       label: 'تسجيل الخروج',
       path: null,
       icons: 'fas fa-sign-out-alt text-muted',

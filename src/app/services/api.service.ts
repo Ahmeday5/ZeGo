@@ -13,6 +13,10 @@ import {
   DashboardSummaryResponse,
   DashboardTripsStatusData,
   DashboardTripsStatusResponse,
+  MapsUsageData,
+  MapsUsageResponse,
+  MapsSummaryData,
+  MapsSummaryResponse,
 } from '../types/dashboard.type';
 import { allClient, ClientsResponse } from '../types/clients.type';
 import { DriversResponse } from '../types/driver.type';
@@ -607,6 +611,47 @@ export class ApiService {
         catchError((error: HttpErrorResponse) => {
           console.error('خطأ في جلب معاملات المحفظة:', error);
           return throwError(() => new Error(this.resolveErrorMessage(error, 'فشل جلب معاملات المحفظة')));
+        }),
+      );
+  }
+
+  /************************************Google Maps Usage*******************************************/
+
+  getGoogleMapsUsage(params?: { from?: string; to?: string; top?: number }): Observable<MapsUsageData> {
+    let httpParams = new HttpParams();
+    if (params?.from) httpParams = httpParams.set('from', params.from);
+    if (params?.to) httpParams = httpParams.set('to', params.to);
+    if (params?.top != null) httpParams = httpParams.set('top', params.top.toString());
+
+    return this.http
+      .get<MapsUsageResponse>(`${this.baseUrl}/api/Dashboard/google-maps-usage`, { params: httpParams })
+      .pipe(
+        map((res) => {
+          if (res.statusCode === 200 && res.data) return res.data;
+          throw new Error(res.message || 'Invalid response');
+        }),
+        catchError((error: HttpErrorResponse) => {
+          console.error('خطأ في جلب بيانات Google Maps:', error);
+          return throwError(() => new Error(this.resolveErrorMessage(error, 'فشل جلب بيانات Google Maps')));
+        }),
+      );
+  }
+
+  getGoogleMapsSummary(params?: { from?: string; to?: string }): Observable<MapsSummaryData> {
+    let httpParams = new HttpParams();
+    if (params?.from) httpParams = httpParams.set('from', params.from);
+    if (params?.to) httpParams = httpParams.set('to', params.to);
+
+    return this.http
+      .get<MapsSummaryResponse>(`${this.baseUrl}/api/Dashboard/google-maps-usage/summary`, { params: httpParams })
+      .pipe(
+        map((res) => {
+          if (res.statusCode === 200 && res.data) return res.data;
+          throw new Error(res.message || 'Invalid response');
+        }),
+        catchError((error: HttpErrorResponse) => {
+          console.error('خطأ في جلب ملخص Google Maps:', error);
+          return throwError(() => new Error(this.resolveErrorMessage(error, 'فشل جلب ملخص Google Maps')));
         }),
       );
   }

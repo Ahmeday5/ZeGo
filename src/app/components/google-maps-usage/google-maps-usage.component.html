@@ -1,0 +1,204 @@
+<div class="maps-page" dir="rtl">
+
+  <!-- ===== Header ===== -->
+  <header class="page-header">
+    <div class="header-info">
+      <div class="header-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <div>
+        <h1 class="header-title">استخدام Google Maps</h1>
+        <p class="header-sub">مراقبة استهلاك الـ API لكل مستخدم</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Filter Bar ===== -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>من</label>
+      <input type="date" [(ngModel)]="fromDate" class="filter-input" />
+    </div>
+    <div class="filter-group">
+      <label>إلى</label>
+      <input type="date" [(ngModel)]="toDate" class="filter-input" />
+    </div>
+    <div class="filter-group">
+      <label>أعلى</label>
+      <select [(ngModel)]="top" class="filter-input filter-select">
+        <option [value]="5">5</option>
+        <option [value]="10">10</option>
+        <option [value]="20">20</option>
+        <option [value]="50">50</option>
+        <option [value]="100">100</option>
+      </select>
+    </div>
+    <button class="btn-search" (click)="loadAll()" [disabled]="loadingUsage || loadingSummary">
+      @if (loadingUsage || loadingSummary) {
+        <span class="spinner-border spinner-border-sm ms-1"></span>
+      } @else {
+        <i class="fa-solid fa-magnifying-glass ms-1"></i>
+      }
+      بحث
+    </button>
+  </div>
+
+  <!-- ===== Summary Cards ===== -->
+  @if (loadingSummary) {
+    <div class="section-loading">
+      <div class="spinner-border text-primary"></div>
+      <span>جاري تحميل الملخص...</span>
+    </div>
+  } @else if (errorSummary) {
+    <div class="alert-error"><i class="fa-solid fa-triangle-exclamation ms-2"></i>{{ errorSummary }}</div>
+  } @else if (summaryData) {
+    <section class="summary-grid">
+      <div class="summary-card total">
+        <div class="sc-icon"><i class="fa-solid fa-chart-column"></i></div>
+        <div class="sc-body">
+          <span class="sc-label">إجمالي الطلبات</span>
+          <span class="sc-value">{{ summaryData.totalCalls | number }}</span>
+        </div>
+      </div>
+      <div class="summary-card autocomplete">
+        <div class="sc-icon"><i class="fa-solid fa-magnifying-glass-location"></i></div>
+        <div class="sc-body">
+          <span class="sc-label">بحث وإكمال</span>
+          <span class="sc-value">{{ getSummaryCallsByEndpoint('PlacesAutocomplete') | number }}</span>
+          @if (getSummaryFailedByEndpoint('PlacesAutocomplete') > 0) {
+            <span class="sc-failed">{{ getSummaryFailedByEndpoint('PlacesAutocomplete') }} فاشل</span>
+          }
+        </div>
+      </div>
+      <div class="summary-card directions">
+        <div class="sc-icon"><i class="fa-solid fa-route"></i></div>
+        <div class="sc-body">
+          <span class="sc-label">المسارات</span>
+          <span class="sc-value">{{ getSummaryCallsByEndpoint('Directions') | number }}</span>
+          @if (getSummaryFailedByEndpoint('Directions') > 0) {
+            <span class="sc-failed">{{ getSummaryFailedByEndpoint('Directions') }} فاشل</span>
+          }
+        </div>
+      </div>
+      <div class="summary-card distance">
+        <div class="sc-icon"><i class="fa-solid fa-ruler-horizontal"></i></div>
+        <div class="sc-body">
+          <span class="sc-label">المسافات</span>
+          <span class="sc-value">{{ getSummaryCallsByEndpoint('DistanceMatrix') | number }}</span>
+          @if (getSummaryFailedByEndpoint('DistanceMatrix') > 0) {
+            <span class="sc-failed">{{ getSummaryFailedByEndpoint('DistanceMatrix') }} فاشل</span>
+          }
+        </div>
+      </div>
+      <div class="summary-card details">
+        <div class="sc-icon"><i class="fa-solid fa-location-dot"></i></div>
+        <div class="sc-body">
+          <span class="sc-label">تفاصيل الأماكن</span>
+          <span class="sc-value">{{ getSummaryCallsByEndpoint('PlaceDetails') | number }}</span>
+          @if (getSummaryFailedByEndpoint('PlaceDetails') > 0) {
+            <span class="sc-failed">{{ getSummaryFailedByEndpoint('PlaceDetails') }} فاشل</span>
+          }
+        </div>
+      </div>
+      <div class="summary-card failed">
+        <div class="sc-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+        <div class="sc-body">
+          <span class="sc-label">إجمالي الفاشلة</span>
+          <span class="sc-value">{{ totalFailed | number }}</span>
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- ===== Users Table ===== -->
+  <section class="table-section">
+    <div class="table-header">
+      <h2 class="table-title">
+        <i class="fa-solid fa-users"></i>
+        أعلى المستخدمين استهلاكاً
+        @if (usageData) {
+          <span class="count-badge">{{ usageData.users.length }}</span>
+        }
+      </h2>
+      @if (usageData) {
+        <span class="date-range">
+          <i class="fa-regular fa-calendar ms-1"></i>
+          {{ usageData.from | date:'mediumDate' }} — {{ usageData.to | date:'mediumDate' }}
+        </span>
+      }
+    </div>
+
+    @if (loadingUsage) {
+      <div class="section-loading">
+        <div class="spinner-border text-primary"></div>
+        <span>جاري تحميل البيانات...</span>
+      </div>
+    } @else if (errorUsage) {
+      <div class="alert-error"><i class="fa-solid fa-triangle-exclamation ms-2"></i>{{ errorUsage }}</div>
+    } @else if (usageData && usageData.users.length === 0) {
+      <div class="empty-state">
+        <i class="fa-solid fa-inbox"></i>
+        <p>لا توجد بيانات في هذه الفترة</p>
+      </div>
+    } @else if (usageData) {
+      <div class="table-responsive">
+        <table class="usage-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>المستخدم</th>
+              <th>النوع</th>
+              <th>الهاتف</th>
+              <th>إجمالي</th>
+              <th>بحث وإكمال</th>
+              <th>مسارات</th>
+              <th>مسافات</th>
+              <th>تفاصيل أماكن</th>
+              <th>فاشل</th>
+              <th>آخر استخدام</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of usageData.users; track user.userId; let i = $index) {
+            <tr>
+              <td class="rank-cell">
+                @if (i === 0) { <span class="rank gold">1</span> }
+                @else if (i === 1) { <span class="rank silver">2</span> }
+                @else if (i === 2) { <span class="rank bronze">3</span> }
+                @else { <span class="rank plain">{{ i + 1 }}</span> }
+              </td>
+              <td class="name-cell">
+                <div class="user-avatar">{{ (user.name || '؟').charAt(0) }}</div>
+                <div class="user-info">
+                  <span class="user-name">{{ user.name || 'غير محدد' }}</span>
+                  <span class="user-id">ID: {{ user.userId }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="type-badge" [class]="getUserTypeBadgeClass(user.userType)">
+                  {{ getUserTypeLabel(user.userType) }}
+                </span>
+              </td>
+              <td class="phone-cell" dir="ltr">{{ user.phone || '-' }}</td>
+              <td class="calls-cell">
+                <div class="calls-bar-wrap">
+                  <span class="calls-num">{{ user.totalCalls | number }}</span>
+                  <div class="calls-bar">
+                    <div class="calls-bar-fill" [style.width.%]="getCallsPercent(user.totalCalls)"></div>
+                  </div>
+                </div>
+              </td>
+              <td class="num-cell">{{ user.breakdown.placesAutocomplete | number }}</td>
+              <td class="num-cell">{{ user.breakdown.directions | number }}</td>
+              <td class="num-cell">{{ user.breakdown.distanceMatrix | number }}</td>
+              <td class="num-cell">{{ user.breakdown.placeDetails | number }}</td>
+              <td class="num-cell" [class.has-failed]="user.failedCalls > 0">
+                {{ user.failedCalls | number }}
+              </td>
+              <td class="date-cell">{{ user.lastCallAt | date:'short' }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>

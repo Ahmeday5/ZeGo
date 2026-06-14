@@ -83,3 +83,52 @@ export interface DashboardTripsStatusResponse {
   message: string;
   data: DashboardTripsStatusData[]; // دي بترجع اري جواه اوبجكت
 }
+
+// ===== Google Maps Usage =====
+
+export interface MapsBreakdown {
+  placesAutocomplete: number;
+  placeDetails: number;
+  directions: number;
+  distanceMatrix: number;
+}
+
+export interface MapsUserUsage {
+  userId: number;
+  userType: string;
+  name: string;
+  phone: string;
+  totalCalls: number;
+  breakdown: MapsBreakdown;
+  failedCalls: number;
+  lastCallAt: string;
+}
+
+export interface MapsUsageData {
+  from: string;
+  to: string;
+  users: MapsUserUsage[];
+}
+
+export interface MapsUsageResponse {
+  statusCode: number;
+  message: string;
+  data: MapsUsageData;
+}
+
+export interface MapsSummaryEndpoint {
+  endpointType: string;
+  totalCalls: number;
+  failedCalls: number;
+}
+
+export interface MapsSummaryData {
+  totalCalls: number;
+  byEndpoint: MapsSummaryEndpoint[];
+}
+
+export interface MapsSummaryResponse {
+  statusCode: number;
+  message: string;
+  data: MapsSummaryData;
+}

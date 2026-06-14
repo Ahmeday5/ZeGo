@@ -18,6 +18,7 @@ import { AddAdminComponent } from './components/admins/add-admin/add-admin.compo
 import { NotificationComponent } from './components/notification/notification.component';
 import { ContentsComponent } from './components/contents/contents.component';
 import { LastTripsDetailsComponent } from './components/last-trips-details/last-trips-details.component';
+import { GoogleMapsUsageComponent } from './components/google-maps-usage/google-maps-usage.component';
 
 export const routes: Routes = [
   {
@@ -128,6 +129,12 @@ export const routes: Routes = [
     path: 'contents',
     component: ContentsComponent,
     title: 'جهات الاتصال',
+    canActivate: [canActivate],
+  },
+  {
+    path: 'google-maps-usage',
+    component: GoogleMapsUsageComponent,
+    title: 'استخدام Google Maps',
     canActivate: [canActivate],
   },
 ];
