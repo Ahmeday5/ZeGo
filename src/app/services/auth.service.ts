@@ -109,18 +109,18 @@ export class AuthService {
       const parsed = JSON.parse(stored) as StoredUser;
       this.userDataSubject.next(parsed);
 
-      const accessValid = !!parsed.accessToken && !this.isTokenExpired();
-      const refreshValid = !this.isRefreshTokenExpired();
-
-      if (accessValid && refreshValid) {
-        this.startTokenRefreshTimer();
-      } else if (!accessValid && refreshValid) {
-        // access انتهى بس refresh شغال → نعمل refresh فورًا
-        this.refresh()
-          .then(() => this.startTokenRefreshTimer())
-          .catch(() => this.logoutAndRedirect());
-      } else {
+      // نطلع المستخدم بس لو الـ refresh token نفسه انتهى (14 يوم)
+      // لو access token بس منتهي → خليه يفضل logged in
+      // الـ interceptor هيتعامل مع الـ 401 ويعمل refresh تلقائياً
+      if (this.isRefreshTokenExpired()) {
         this.logoutAndRedirect();
+        return;
+      }
+
+      // لو access token لسه صالح → جدول الـ refresh التلقائي
+      // لو access token منتهي → الـ interceptor هيجدده عند أول API call
+      if (!this.isTokenExpired()) {
+        this.startTokenRefreshTimer();
       }
     } catch (e) {
       console.error('Failed to parse userData', e);
@@ -211,31 +211,22 @@ export class AuthService {
     if (this.refreshTimeoutId) clearTimeout(this.refreshTimeoutId);
 
     const stored = this.userDataSubject.value;
-    if (!stored?.accessTokenExpiresAt) {
-      this.logoutAndRedirect();
-      return;
-    }
+    if (!stored?.accessTokenExpiresAt) return;
 
     const expiry = Date.parse(stored.accessTokenExpiresAt);
-    if (isNaN(expiry)) {
-      this.logoutAndRedirect();
-      return;
-    }
+    if (isNaN(expiry)) return;
 
     const now = Date.now();
     const timeLeft = expiry - now;
     const threshold = 2 * 60 * 1000; // 2 دقايق قبل الانتهاء
 
-    if (timeLeft <= threshold) {
-      void this.refresh().catch(() => this.logoutAndRedirect());
-      return;
-    }
-
-    const delay = timeLeft - threshold;
+    // لو التوكن انتهى أو قارب → مش هنعمل حاجة دلوقتي
+    // الـ interceptor هيتعامل معاه لما يجي 401 على أول request
+    if (timeLeft <= threshold) return;
 
     this.refreshTimeoutId = setTimeout(() => {
       void this.refresh().catch(() => this.logoutAndRedirect());
-    }, delay);
+    }, timeLeft - threshold);
   }
 
   // === تسجيل الخروج ===

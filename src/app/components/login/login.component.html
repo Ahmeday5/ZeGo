@@ -1,73 +1,140 @@
 <div class="loginPage">
-  <div class="container-fluid p-0">
-    <div class="row align-content-center align-items-center justify-content-center" style="min-height: 100vh;">
-      <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
-        <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
-          <path
-            d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-        </symbol>
-        <symbol id="exclamation-triangle-fill" fill="currentColor" viewBox="0 0 16 16">
-          <path
-            d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
-        </symbol>
-      </svg>
-      @if (errorMessage) {
-      <div class="col-md-12">
-        <div class="row justify-content-center">
-          <div class="alert alert-danger d-flex align-items-center mt-4 w-75" role="alert">
-            <svg class="bi flex-shrink-0 me-2 ms-3" width="24" height="24" role="img" aria-label="Danger:">
-              <use xlink:href="#exclamation-triangle-fill" />
-            </svg>
-            <div>{{ errorMessage }}</div>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
+    <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
+      <path
+        d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+    </symbol>
+    <symbol id="exclamation-triangle-fill" fill="currentColor" viewBox="0 0 16 16">
+      <path
+        d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+    </symbol>
+  </svg>
+
+  <div class="login-wrapper">
+    <!-- Left: Login form -->
+    <div class="login-panel">
+      <div class="login-panel-inner">
+        <div class="brand">
+          <img src="/assets/img/logo.png" class="brand-logo" alt="logo">
+        </div>
+
+        <h1 class="welcome-title">مرحباً بعودتك</h1>
+        <p class="welcome-subtitle">سجّل الدخول للوصول إلى لوحة التحكم</p>
+
+        @if (errorMessage) {
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+          <svg class="bi flex-shrink-0 me-2 ms-3" width="20" height="20" role="img" aria-label="Danger:">
+            <use xlink:href="#exclamation-triangle-fill" />
+          </svg>
+          <div>{{ errorMessage }}</div>
+        </div>
+        }
+
+        <form #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)" class="login-form">
+          <div class="form-group">
+            <label for="email" class="form-label">البريد الإلكتروني</label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-envelope input-icon"></i>
+              <input [(ngModel)]="userNameOrEmail" type="email" placeholder="البريد الالكتروني"
+                class="form-control" id="email" name="email" required>
+            </div>
           </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">كلمة المرور</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock input-icon"></i>
+              <input [(ngModel)]="password" [type]="showPassword ? 'text' : 'password'" placeholder="كلمة المرور"
+                class="form-control" id="password" name="password" required>
+              <span class="password-toggle" (click)="togglePassword()">
+                <i class="fa-regular {{ showPassword ? 'fa-eye-slash' : 'fa-eye' }}"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="form-options">
+            <div class="remember form-check">
+              <input [(ngModel)]="rememberMe" class="form-check-input" type="checkbox" id="checkDefault"
+                name="rememberMe">
+              <label class="form-check-label" for="checkDefault">
+                تذكرني
+              </label>
+            </div>
+            <a href="#" class="forgot-link" role="button" data-bs-toggle="button">نسيت كلمة المرور؟</a>
+          </div>
+
+          <button type="submit" class="btn submit-btn fw-bold" [disabled]="isLoading || loginForm.invalid">
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>
+            <span>تسجيل الدخول</span>
+            <i class="fa-solid fa-arrow-left-long submit-icon" *ngIf="!isLoading"></i>
+          </button>
+        </form>
+
+        <div class="login-footer">
+          <span>Developed by <strong>TheOneSystem</strong></span>
         </div>
       </div>
-      }
-      <div class="col-md-6">
-        <div class="imgs">
-          <img src="/assets/img/logo.png" class="img-fluid" alt="logo">
+    </div>
+
+    <!-- Right: Info panel -->
+    <div class="info-panel">
+      <div class="info-panel-content">
+        <div class="info-badge">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span>لوحة تحكم إدارية</span>
         </div>
-        <form class="mt-4" #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)">
-          <div class="row justify-content-center">
-            <div class="col-md-10">
-              <div class="form-group mt-4">
-                <label for="email" class="form-label">البريد الإلكتروني</label>
-                <input [(ngModel)]="userNameOrEmail" type="email" placeholder="البريد الالكتروني" class="form-control"
-                  id="email" name="email" required>
-              </div>
+
+        <h2 class="info-title">لوحة تحكم ZeGo</h2>
+        <p class="info-description">
+          منصة إدارية متكاملة لإدارة عمليات النقل والتوصيل، تتيح لفريق الإدارة متابعة
+          المستخدمين والسائقين، التحكم في التسعير، ومراقبة الأداء المالي والتشغيلي
+          من مكان واحد بكفاءة وسهولة.
+        </p>
+
+        <ul class="feature-list">
+          <li class="feature-item">
+            <span class="feature-icon"><i class="fa-solid fa-users"></i></span>
+            <div>
+              <h3>إدارة المستخدمين والسائقين</h3>
+              <p>متابعة الحسابات، اعتماد السائقين، وإدارة بيانات العملاء.</p>
             </div>
-            <div class="col-md-10">
-              <div class="form-group mt-3">
-                <label for="password" class="form-label">كلمة المرور</label>
-                <input [(ngModel)]="password" [type]="showPassword ? 'text' : 'password'" placeholder="كلمة المرور"
-                  class="form-control" id="password" name="password" required>
-                <span class="password-toggle" (click)="togglePassword()">
-                  <i class="fa-regular {{ showPassword ? 'fa-eye-slash' : 'fa-eye' }}"
-                    style="color: var(--main-color);"></i>
-                </span>
-              </div>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon"><i class="fa-solid fa-user-shield"></i></span>
+            <div>
+              <h3>إدارة المديرين والصلاحيات</h3>
+              <p>التحكم الكامل في حسابات المديرين ومستويات الوصول.</p>
             </div>
-            <div class="col-md-10">
-              <div class="remember-content mt-2">
-                <div class="remember form-check">
-                  <label class="form-check-label" for="checkDefault">
-                    تذكرني
-                  </label>
-                  <input [(ngModel)]="rememberMe" class="form-check-input" type="checkbox" id="checkDefault"
-                    name="rememberMe">
-                </div>
-              </div>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon"><i class="fa-solid fa-tags"></i></span>
+            <div>
+              <h3>محرر التسعير</h3>
+              <p>تخصيص وتحديث أسعار الرحلات والخدمات بمرونة.</p>
             </div>
-            <div class="submit text-center mt-4">
-              <button type="submit" class="btn fw-bold" [disabled]="isLoading || loginForm.invalid"><span *ngIf="isLoading"
-                  class="spinner-border spinner-border-sm"></span>
-                تسجيل الدخول</button>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon"><i class="fa-solid fa-chart-line"></i></span>
+            <div>
+              <h3>التقارير والتحليلات المالية</h3>
+              <p>رؤية شاملة للأداء المالي والتشغيلي عبر تقارير تفصيلية.</p>
             </div>
-            <div class="text-center forgetpass mt-2">
-              <a href="#" class="btn" role="button" data-bs-toggle="button">نسيت كلمة المرور؟</a>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon"><i class="fa-solid fa-location-dot"></i></span>
+            <div>
+              <h3>تتبع استخدام خرائط جوجل</h3>
+              <p>مراقبة استهلاك خدمات الخرائط والمواقع لحظياً.</p>
             </div>
-          </div>
-        </form>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon"><i class="fa-solid fa-bell"></i></span>
+            <div>
+              <h3>الإشعارات وجهات الاتصال</h3>
+              <p>إرسال الرسائل وإدارة قنوات التواصل مع المستخدمين.</p>
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
   </div>

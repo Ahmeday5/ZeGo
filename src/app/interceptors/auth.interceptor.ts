@@ -16,94 +16,71 @@ import {
   from,
 } from 'rxjs';
 import { AuthService } from '../services/auth.service';
-import { Router } from '@angular/router';
 import { StoredUser } from '../types/login.type';
 
 let isRefreshing = false;
-const refreshTokenSubject = new BehaviorSubject<string | null>(null);
+let refreshTokenSubject = new BehaviorSubject<string | null>(null);
+
+const isAuthUrl = (url: string) =>
+  url.includes('/login') || url.includes('/refresh-token') || url.includes('/logout');
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<any>,
   next: HttpHandlerFn,
 ): Observable<HttpEvent<any>> => {
   const authService = inject(AuthService);
-  const router = inject(Router); // لو حابب تستخدمه بعدين (اختياري)
 
   const accessToken = authService.getToken();
 
-  // نضيف الـ Bearer فقط لو الطلب مش للوجين أو ريفريش أو لوج أوت، والتوكن موجود ولم ينتهي
-  if (
-    !req.url.includes('/login') &&
-    !req.url.includes('/refresh-token') &&
-    !req.url.includes('/logout') &&
-    accessToken &&
-    !authService.isTokenExpired()
-  ) {
+  // نبعت التوكن دايمًا لو موجود — السيرفر هو اللي يحكم إنه صالح أو لا
+  // (إزلنا شرط isTokenExpired لأن ساعة الجهاز ممكن تختلف عن السيرفر)
+  if (!isAuthUrl(req.url) && accessToken) {
     req = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      setHeaders: { Authorization: `Bearer ${accessToken}` },
     });
   }
 
   return next(req).pipe(
     catchError((error) => {
-      // لو السيرفر رد 401 وكان الطلب عادي (مش ريفريش ولا لوجين)
-      if (
-        error.status === 401 &&
-        !req.url.includes('/refresh-token') &&
-        !req.url.includes('/login') &&
-        !req.url.includes('/logout')
-      ) {
-        // أول طلب وصل 401 → نبدأ عملية الـ refresh
+      if (error.status === 401 && !isAuthUrl(req.url)) {
         if (!isRefreshing) {
           isRefreshing = true;
-          refreshTokenSubject.next(null); // نقول للطلبات التانية: انتظروا
+          // نعمل reset للـ subject عند كل دورة refresh جديدة
+          refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
           return from(authService.refresh()).pipe(
             switchMap((newTokens: StoredUser) => {
               isRefreshing = false;
-              refreshTokenSubject.next(newTokens.accessToken); // نطلّع التوكن الجديد للكل
-
-              // نعيد الطلب الأصلي بالتوكن الجديد
+              refreshTokenSubject.next(newTokens.accessToken);
               return next(
                 req.clone({
-                  setHeaders: {
-                    Authorization: `Bearer ${newTokens.accessToken}`,
-                  },
+                  setHeaders: { Authorization: `Bearer ${newTokens.accessToken}` },
                 }),
               );
             }),
             catchError((refreshError) => {
               isRefreshing = false;
               refreshTokenSubject.next(null);
-
-              // لو الـ refresh فشل → يعني الريفريش توكن خلص أو فيه مشكلة → نطلّع المستخدم
-              authService.logout(); // ده هينظف كل حاجة ويروح للـ login
-
+              authService.logout();
               return throwError(() => refreshError);
             }),
           );
         } else {
-          // في طلب تاني جاله 401 بس احنا بالفعل بنعمل refresh
-          // هنستنى لحد ما التوكن الجديد يوصل
+          // طلبات منتظرة → تستنى التوكن الجديد
           return refreshTokenSubject.pipe(
             filter((token) => token !== null),
             take(1),
-            switchMap((token) => {
-              return next(
+            switchMap((token) =>
+              next(
                 req.clone({
-                  setHeaders: {
-                    Authorization: `Bearer ${token!}`,
-                  },
+                  setHeaders: { Authorization: `Bearer ${token!}` },
                 }),
-              );
-            }),
+              ),
+            ),
           );
         }
       }
 
-      // أي إيرور تاني غير 401 → نرميه عادي
       return throwError(() => error);
     }),
   );
