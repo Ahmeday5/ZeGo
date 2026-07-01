@@ -73,6 +73,10 @@
   width: 100%;
   max-width: 420px;
   animation: fadeIn 0.6s ease both;
+  border: 1px solid #2967b3 !important;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--main-color);
 }
 
 .brand {
@@ -88,7 +92,7 @@
 }
 
 .welcome-title {
-  color: var(--main-color);
+  color: var(--second-color);
   font-weight: 800;
   font-size: 26px;
   text-align: center;
@@ -125,7 +129,7 @@
 .form-group .form-label {
   font-size: 14px;
   font-weight: 700;
-  color: var(--main-color);
+  color: var(--second-color);
   margin-bottom: 8px;
   display: inline-block;
 }
@@ -209,7 +213,7 @@
   font-family: var(--main-font) !important;
   font-weight: 600;
   font-size: 14px;
-  color: var(--main-color);
+  color: var(--second-color);
   cursor: pointer;
 }
 
@@ -222,7 +226,7 @@
   transition: color var(--main-transition);
 
   &:hover {
-    color: var(--main-color);
+    color: var(--second-color);
     text-decoration: underline;
   }
 }
@@ -230,7 +234,7 @@
 .submit-btn {
   width: 100%;
   border-radius: 10px;
-  background: var(--main-color);
+  background: var(--second-color);
   font-family: var(--main-font) !important;
   font-weight: 700;
   font-size: 16px;
@@ -277,7 +281,7 @@
   animation-delay: 0.2s;
 
   strong {
-    color: var(--main-color);
+    color: var(--second-color);
   }
 }
 
