@@ -18,11 +18,11 @@
           <h6>بحث</h6>
         </button>
 
-        <!-- زر تصدير CSV -->
-        <button type="button" class="btn Custombtn-export" (click)="exportCSV()">
-          <h6>تصدير CSV</h6>
+        <!-- زر تصدير Excel -->
+        <button type="button" class="btn Custombtn-export" (click)="exportExcel()">
+          <h6>تصدير Excel</h6>
         </button>
-        <button type="button" class="btn Custombtn-export" (click)="exportAllCSV()">
+        <button type="button" class="btn Custombtn-export" (click)="exportAllExcel()">
           <h6>تصدير كل العملاء</h6>
         </button>
       </div>
@@ -45,6 +45,16 @@
             <label for="phone" class="form-label">رقم الهاتف</label>
             <input formControlName="phone" name="searchName" class="form-control" type="search" id="searchName"
               placeholder="ابحث بالرقم....." />
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <label for="governmentId" class="form-label">المحافظة</label>
+            <select formControlName="governmentId" class="form-select" id="governmentId">
+              <option value="">كل المحافظات</option>
+              @for (gov of governments; track gov.id) {
+              <option [value]="gov.id">{{ gov.name }}</option>
+              }
+            </select>
           </div>
         </div>
 
@@ -102,7 +112,7 @@
             }
             <td>{{ client.name }}</td>
             <td dir="ltr">{{ client.phone }}</td>
-            <td>{{ client.governorate ?? 'غير محدد' }}</td>
+            <td>{{ client.government ?? 'غير محدد' }}</td>
             <td>{{ formatDate(client.createdAt) }}</td>
             <td>
               <span class="badge {{ client.isActive ? 'bg-success' : 'bg-secondary' }}">
@@ -159,8 +169,17 @@
   </div>
 
   <!-- Pagination - استخدم الـ component الجاهز -->
-  <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" [windowSize]="1"
-    (pageChange)="onPageChange($event)"></app-pagination>
+  <app-pagination
+    [currentPage]="currentPage"
+    [totalPages]="totalPages"
+    [windowSize]="1"
+    [totalItems]="totalCount"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[10, 25, 50, 100]"
+    [disabled]="loading"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  ></app-pagination>
 
   <!-- Edit Client Modal -->
   @if (showEditModal) {

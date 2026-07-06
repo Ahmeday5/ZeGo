@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { SidebarService } from './services/sidebar.service';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { SidebarComponent } from './layout/sidebar/sidebar.component';
+import { HeaderComponent } from './layout/header/header.component';
 import { ToastContainerComponent } from './shared/toast/toast-container.component';
 import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';
 
@@ -15,6 +17,7 @@ import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.c
     RouterOutlet,
     CommonModule,
     SidebarComponent,
+    HeaderComponent,
     ToastContainerComponent,
     ConfirmDialogComponent,
   ],
@@ -24,6 +27,9 @@ import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.c
 export class AppComponent {
   title = 'ZeGo';
   isLoggedIn$: Observable<boolean>;
+
+  private readonly sidebarService = inject(SidebarService);
+  readonly isSidebarCollapsed = this.sidebarService.isCollapsed;
 
   constructor(private authService: AuthService, private router: Router) {
     this.isLoggedIn$ = this.authService.isLoggedIn$;

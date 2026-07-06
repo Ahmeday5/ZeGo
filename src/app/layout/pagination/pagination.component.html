@@ -1,33 +1,136 @@
-<div class="All-Pagination" dir="ltr" *ngIf="totalPages > 1">
-  <nav>
-    <ul class="pagination justify-content-center">
-      <!-- زر الصفحة السابقة -->
-      <li class="page-item" [ngClass]="{'disabled': currentPage === 1}">
-        <button class="page-link" (click)="onPageChange(currentPage - 1)">
-          <i class="fa-solid fa-left-long"></i>
+<div class="pagination-bar" *ngIf="totalPages > 0" [class.is-disabled]="disabled">
+  <!-- ملخص النتائج: "عرض 1-10 من 247" -->
+  <div class="pagination-summary" *ngIf="pageSize && totalItems !== null">
+    <span>عرض</span>
+    <strong>{{ rangeStart }}</strong>
+    <span>-</span>
+    <strong>{{ rangeEnd }}</strong>
+    <span>من إجمالي</span>
+    <strong>{{ totalItems }}</strong>
+  </div>
+
+  <nav class="pagination-nav" dir="ltr" aria-label="التنقل بين الصفحات">
+    <ul class="pagination">
+      <!-- الصفحة الأولى -->
+      <li class="page-item" [class.disabled]="currentPage === 1 || disabled">
+        <button
+          type="button"
+          class="page-link page-link--edge"
+          [disabled]="currentPage === 1 || disabled"
+          (click)="goToFirst()"
+          title="الصفحة الأولى"
+          aria-label="الانتقال إلى الصفحة الأولى"
+        >
+          <i class="fa-solid fa-angles-left"></i>
         </button>
       </li>
+
+      <!-- الصفحة السابقة -->
+      <li class="page-item" [class.disabled]="currentPage === 1 || disabled">
+        <button
+          type="button"
+          class="page-link"
+          [disabled]="currentPage === 1 || disabled"
+          (click)="onPageChange(currentPage - 1)"
+          title="الصفحة السابقة"
+          aria-label="الانتقال إلى الصفحة السابقة"
+        >
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+      </li>
+
       <!-- أرقام الصفحات المرئية -->
-      @for (item of pages; track item.type + (item.value || 0)) {
-      @if (item.type === 'page') {
-        <li class="page-item" [ngClass]="{'active': currentPage === item.value}">
-          <button class="page-link" (click)="onPageChange(item.value)">
-            {{ item.value }}
-          </button>
-        </li>
+      @for (item of pages; track item.type + '-' + (item.value || 0)) {
+        @if (item.type === 'page') {
+          <li class="page-item" [class.active]="currentPage === item.value">
+            <button
+              type="button"
+              class="page-link"
+              [disabled]="disabled"
+              [attr.aria-current]="currentPage === item.value ? 'page' : null"
+              (click)="onPageChange(item.value)"
+            >
+              {{ item.value }}
+            </button>
+          </li>
+        }
+        @if (item.type === 'ellipsis') {
+          <li class="page-item disabled">
+            <span class="page-link ellipsis" aria-hidden="true">…</span>
+          </li>
+        }
       }
-      @if (item.type === 'ellipsis') {
-        <li class="page-item disabled">
-          <span class="page-link ellipsis">...</span>
-        </li>
-      }
-      }
-      <!-- زر الصفحة التالية -->
-      <li class="page-item" [ngClass]="{'disabled': currentPage === totalPages}">
-        <button class="page-link" (click)="onPageChange(currentPage + 1)">
-          <i class="fa-solid fa-right-long"></i>
+
+      <!-- الصفحة التالية -->
+      <li class="page-item" [class.disabled]="currentPage === totalPages || disabled">
+        <button
+          type="button"
+          class="page-link"
+          [disabled]="currentPage === totalPages || disabled"
+          (click)="onPageChange(currentPage + 1)"
+          title="الصفحة التالية"
+          aria-label="الانتقال إلى الصفحة التالية"
+        >
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </li>
+
+      <!-- الصفحة الأخيرة -->
+      <li class="page-item" [class.disabled]="currentPage === totalPages || disabled">
+        <button
+          type="button"
+          class="page-link page-link--edge"
+          [disabled]="currentPage === totalPages || disabled"
+          (click)="goToLast()"
+          title="الصفحة الأخيرة"
+          aria-label="الانتقال إلى الصفحة الأخيرة"
+        >
+          <i class="fa-solid fa-angles-right"></i>
         </button>
       </li>
     </ul>
   </nav>
+
+  <div class="pagination-tools">
+    <!-- الانتقال المباشر لصفحة معينة -->
+    <div class="jump-to" *ngIf="showJumpTo && totalPages > 1">
+      <label for="pagination-jump-input">الانتقال إلى</label>
+      <input
+        id="pagination-jump-input"
+        type="number"
+        class="jump-to-input"
+        min="1"
+        [max]="totalPages"
+        [(ngModel)]="jumpToPageValue"
+        [disabled]="disabled"
+        (keydown.enter)="onJumpToSubmit()"
+        placeholder="#"
+        aria-label="الانتقال إلى رقم صفحة"
+      />
+      <button
+        type="button"
+        class="jump-to-btn"
+        [disabled]="disabled || jumpToPageValue === null"
+        (click)="onJumpToSubmit()"
+      >
+        اذهب
+      </button>
+    </div>
+
+    <!-- اختيار عدد الصفوف بالصفحة -->
+    <div class="page-size-select" *ngIf="pageSizeOptions.length">
+      <label for="pagination-page-size">عدد الصفوف</label>
+      <select
+        id="pagination-page-size"
+        class="page-size-dropdown"
+        [disabled]="disabled"
+        [ngModel]="pageSize"
+        (ngModelChange)="onPageSizeChange($event)"
+      >
+        @for (option of pageSizeOptions; track option) {
+          <option [value]="option">{{ option }}</option>
+        }
+      </select>
+    </div>
+  </div>
 </div>

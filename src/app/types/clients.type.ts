@@ -2,11 +2,11 @@ export interface allClient {
   id: number;
   name: string;
   phone: string;
-  governorate?: string;
+  government?: string;
   email: string;
   isActive: boolean;
   profileImageUrl: string;
-  createdAt:string;
+  createdAt: string;
 }
 
 export interface ClientsResponse {

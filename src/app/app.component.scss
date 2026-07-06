@@ -1,3 +1,6 @@
+$header-height: 64px;
+$header-height-mobile: 56px;
+
 /* تنسيق حاوية الـ Sidebar والمحتوى */
 .content-wrapper {
   direction: rtl;
@@ -21,7 +24,14 @@
   padding: 0 !important;
   overflow: hidden;
   font-family: var(--main-font) !important;
-  margin-top: 20px;
+  margin-top: $header-height + 20px;
+  transition: margin-right 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* عند تصغير الـ Sidebar (سطح المكتب) - نقلّل المساحة المحجوزة */
+.content.sidebar-collapsed {
+  margin-right: 76px;
+  width: calc(100vw - 76px) !important;
 }
 
 /* تنسيق المحتوى عند عدم وجود Sidebar (مثل صفحات Splash وLogin) */
@@ -38,34 +48,12 @@
     width: 100% !important;
     margin-right: 0 !important;
     margin-left: 0 !important;
-    margin-top: 40px;
+    margin-top: $header-height-mobile + 16px;
   }
 
   .full-width {
     width: 100% !important;
     margin-right: 0 !important;
     margin-left: 0 !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .content {
-    margin-top: 40px;
-  }
-
-  .full-width {
-    width: 100% !important;
-    margin-right: 0 !important;
-  }
-}
-
-@media (max-width: 576px) {
-  .content {
-    margin-top: 40px;
-  }
-
-  .full-width {
-    width: 100% !important;
-    margin-right: 0 !important;
   }
 }

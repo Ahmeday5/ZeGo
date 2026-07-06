@@ -7,6 +7,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 interface PaginationItem {
   type: 'page' | 'ellipsis';
@@ -16,7 +17,7 @@ interface PaginationItem {
 @Component({
   selector: 'app-pagination',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './pagination.component.html',
   styleUrl: './pagination.component.scss',
 })
@@ -25,14 +26,38 @@ export class PaginationComponent implements OnChanges {
   @Input() totalPages: number = 0;
   @Input() windowSize: number = 2;
 
+  /** إجمالي عدد العناصر الكلي (اختياري) - لعرض "من X إلى Y من إجمالي Z". */
+  @Input() totalItems: number | null = null;
+  /** عدد العناصر في الصفحة الحالية (اختياري) - لعرض ملخص النتائج وحساب اختيار عدد الصفوف. */
+  @Input() pageSize: number | null = null;
+  /** الخيارات المعروضة في قائمة "عدد الصفوف بالصفحة". اتركه فاضي لإخفاء القائمة. */
+  @Input() pageSizeOptions: number[] = [];
+  /** تعطيل كل عناصر التحكم أثناء تحميل بيانات جديدة (يمنع النقر المزدوج). */
+  @Input() disabled = false;
+  /** إظهار مربع "الانتقال إلى صفحة" مباشرة. */
+  @Input() showJumpTo = true;
+
   @Output() pageChange = new EventEmitter<number>();
+  @Output() pageSizeChange = new EventEmitter<number>();
 
   pages: PaginationItem[] = [];
+  jumpToPageValue: number | null = null;
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['currentPage'] || changes['totalPages']) {
+    if (changes['currentPage'] || changes['totalPages'] || changes['windowSize']) {
       this.pages = this.getVisiblePages();
     }
+  }
+
+  get rangeStart(): number {
+    if (!this.pageSize || this.totalItems === null) return 0;
+    if (this.totalItems === 0) return 0;
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  get rangeEnd(): number {
+    if (!this.pageSize || this.totalItems === null) return 0;
+    return Math.min(this.currentPage * this.pageSize, this.totalItems);
   }
 
   // دالة لحساب الصفحات المرئية
@@ -86,10 +111,37 @@ export class PaginationComponent implements OnChanges {
     return visiblePages;
   }
 
- // دالة لتغيير الصفحة (مع التحقق من الـ Type وإرسال الحدث)
+  // دالة لتغيير الصفحة (مع التحقق من الـ Type وإرسال الحدث)
   onPageChange(page: number | undefined): void {
-    if (typeof page === 'number' && page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-      this.pageChange.emit(page); // إرسال الحدث للـ parent component
+    if (this.disabled) return;
+    if (
+      typeof page === 'number' &&
+      page >= 1 &&
+      page <= this.totalPages &&
+      page !== this.currentPage
+    ) {
+      this.pageChange.emit(page);
     }
+  }
+
+  goToFirst(): void {
+    this.onPageChange(1);
+  }
+
+  goToLast(): void {
+    this.onPageChange(this.totalPages);
+  }
+
+  onPageSizeChange(value: string): void {
+    const size = Number(value);
+    if (size > 0) {
+      this.pageSizeChange.emit(size);
+    }
+  }
+
+  onJumpToSubmit(): void {
+    if (this.jumpToPageValue === null) return;
+    this.onPageChange(Math.trunc(this.jumpToPageValue));
+    this.jumpToPageValue = null;
   }
 }

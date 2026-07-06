@@ -7,9 +7,16 @@ import { HttpParams } from '@angular/common/http';
 import { ApiService } from '../../../services/api.service';
 import { PaginationComponent } from '../../../layout/pagination/pagination.component';
 import { allClient, ClientsResponse } from '../../../types/clients.type';
+import { Government } from '../../../types/government.type';
 import { WalletModalComponent } from '../../wallet-modal/wallet-modal.component';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { ConfirmService } from '../../../shared/confirm-dialog/confirm.service';
+import {
+  buildExportFileName,
+  ExcelColumn,
+  exportToExcel,
+  formatDateForExport,
+} from '../../../shared/utils/excel-export.util';
 @Component({
   selector: 'app-customer-list',
   standalone: true,
@@ -39,6 +46,8 @@ export class CustomerListComponent implements OnInit {
   noClientMessage: string | null = null;
   ClientMessage: string | null = null;
 
+  governments: Government[] = [];
+
   showEditModal = false;
   selectedClient: allClient | null = null;
   fileToUpload: File | null = null;
@@ -55,7 +64,7 @@ export class CustomerListComponent implements OnInit {
   resetPasswordForm: FormGroup;
   resetLoading = false;
   resetErrorMessage: string | null = null;
-  
+
   // محفظة العميل
   walletModalVisible = false;
   walletUserId: number | null = null;
@@ -71,6 +80,7 @@ export class CustomerListComponent implements OnInit {
     this.filterForm = this.fb.group({
       name: [''],
       phone: [''],
+      governmentId: [''],
     });
 
     this.editForm = this.fb.group({
@@ -90,6 +100,10 @@ export class CustomerListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadClients(1);
+    this.api.getGovernments().subscribe((governments) => {
+      this.governments = governments;
+      this.cdr.detectChanges();
+    });
   }
 
   /********************************اعادة تعيين كلمة المور***********************************************************/
@@ -262,7 +276,8 @@ export class CustomerListComponent implements OnInit {
       next: (res) => {
         this.response = res;
         this.clients = res.data || [];
-        this.totalPages = Math.ceil((res.count || 0) / this.pageSize);
+        this.totalCount = res.count || 0;
+        this.totalPages = Math.ceil(this.totalCount / this.pageSize);
         this.currentPage = res.pageIndex || 1;
         this.loading = false;
       },
@@ -277,13 +292,7 @@ export class CustomerListComponent implements OnInit {
 
   onFilter(): void {
     this.currentPage = 1;
-    const value = this.filterForm.value;
-
-    let params = new HttpParams();
-    if (value.name?.trim()) params = params.set('name', value.name.trim());
-    if (value.phone?.trim()) params = params.set('phone', value.phone.trim());
-
-    this.loadClients(1, params);
+    this.loadClients(1, this.getFilterParams());
     //this.showFilter = false;
   }
 
@@ -299,13 +308,14 @@ export class CustomerListComponent implements OnInit {
 
   onPageChange(page: number): void {
     if (page !== this.currentPage) {
-      const value = this.filterForm.value;
-      let params = new HttpParams();
-      if (value.name?.trim()) params = params.set('name', value.name.trim());
-      if (value.phone?.trim()) params = params.set('phone', value.phone.trim());
-
-      this.loadClients(page, params);
+      this.loadClients(page, this.getFilterParams());
     }
+  }
+
+  onPageSizeChange(size: number): void {
+    if (size === this.pageSize) return;
+    this.pageSize = size;
+    this.loadClients(1, this.getFilterParams());
   }
 
   //اجمع الفلاتر من الـ form
@@ -314,7 +324,8 @@ export class CustomerListComponent implements OnInit {
     const value = this.filterForm.value;
 
     if (value.name?.trim()) params = params.set('name', value.name.trim());
-    if (value.phone) params = params.set('phone', value.phone);
+    if (value.phone?.trim()) params = params.set('phone', value.phone.trim());
+    if (value.governmentId) params = params.set('governmentId', value.governmentId);
     if (value.isActive !== '' && value.isActive !== null) {
       params = params.set('IsActive', value.isActive);
     }
@@ -406,83 +417,86 @@ export class CustomerListComponent implements OnInit {
     });
   }
 
-  exportCSV(): void {
-    if (!this.clients.length) return;
+  /******************************************************تصدير CSV************************************************************/
 
-    const headers = ['#', 'الاسم', 'التليفون', 'تاريخ الإنشاء', 'الحالة'];
-    const rows = this.clients.map((c, i) => [
-      ((this.currentPage - 1) * this.pageSize + i + 1).toString(),
-      c.name,
-      c.phone,
-      c.createdAt || '',
-      c.isActive ? 'نشط' : 'محظور',
-    ]);
+  private readonly clientExcelColumns: ExcelColumn<allClient>[] = [
+    { header: '#', value: (_c, i) => i + 1 },
+    { header: 'الاسم', value: (c) => c.name },
+    { header: 'رقم التليفون', value: (c) => c.phone },
+    { header: 'المحافظة', value: (c) => c.government || 'غير محدد' },
+    { header: 'تاريخ الانضمام', value: (c) => formatDateForExport(c.createdAt) },
+    { header: 'الحالة', value: (c) => (c.isActive ? 'نشط' : 'محظور') },
+  ];
 
-    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
-    const blob = new Blob(['\uFEFF' + csv], {
-      type: 'text/csv;charset=utf-8;',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `العملاء_${new Date().toLocaleDateString('ar-EG')}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  /** تصدير العملاء المعروضين في الصفحة الحالية فقط. */
+  exportExcel(): void {
+    if (!this.clients.length) {
+      this.toast.error('لا يوجد عملاء لتصديرهم', 'تنبيه');
+      return;
+    }
+
+    exportToExcel(this.clients, this.clientExcelColumns, buildExportFileName('عملاء_ZeGo'));
   }
 
-  exportAllCSV(): void {
+  /**
+   * تصدير كل العملاء المطابقين للفلتر الحالي، بالمرور على كل الصفحات بنفس حجم الصفحة
+   * المستخدم في العرض العادي (this.pageSize) بدل تخمين حجم صفحة كبير قد يقيّده الباك اند بصمت.
+   * التوقف يتم فقط لما نجمع كل العناصر أو تيجي صفحة فاضية (حماية من infinite loop).
+   */
+  exportAllExcel(): void {
     this.loading = true;
 
-    let params = this.getFilterParams();
+    const filterParams = this.getFilterParams();
+    const requestedPageSize = this.pageSize;
+    let currentPage = 1;
+    let allClients: allClient[] = [];
 
-    // نخلي pageSize كبير جدًا عشان نجيب كل الداتا
-    params = params.set('pageIndex', '1');
-    params = params.set('pageSize', '1000000000'); // رقم كبير
+    const fetchPage = () => {
+      const requestParams = filterParams
+        .set('pageIndex', currentPage.toString())
+        .set('pageSize', requestedPageSize.toString());
 
-    this.api.getAllClients(params).subscribe({
-      next: (res) => {
-        const allClients = res.data || [];
+      this.api.getAllClients(requestParams).subscribe({
+        next: (res) => {
+          const clients = res.data || [];
+          const totalCount = res.count || 0;
 
-        if (!allClients.length) {
+          allClients = [...allClients, ...clients];
+
+          const reachedTotal = allClients.length >= totalCount;
+          const emptyPage = clients.length === 0;
+
+          if (!reachedTotal && !emptyPage) {
+            currentPage++;
+            fetchPage();
+            return;
+          }
+
           this.loading = false;
-          return;
-        }
+          if (!allClients.length) {
+            this.toast.error('لا يوجد عملاء مطابقين لهذا الفلتر', 'تنبيه');
+            return;
+          }
 
-        const headers = ['#', 'الاسم', 'التليفون', 'تاريخ الإنشاء', 'الحالة'];
+          if (allClients.length < totalCount) {
+            console.warn(`تصدير جزئي: تم جلب ${allClients.length} من أصل ${totalCount} عميل.`);
+          }
 
-        const rows = allClients.map((c: any, i: number) => [
-          (i + 1).toString(),
-          c.name,
-          c.phone,
-          c.createdAt || '',
-          c.isActive ? 'نشط' : 'محظور',
-        ]);
+          exportToExcel(allClients, this.clientExcelColumns, buildExportFileName('كل_العملاء_ZeGo'));
+        },
+        error: (err) => {
+          console.error(err);
+          this.toast.error('فشل تصدير بيانات العملاء', 'خطأ');
+          this.loading = false;
+        },
+      });
+    };
 
-        const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
-
-        const blob = new Blob(['\uFEFF' + csv], {
-          type: 'text/csv;charset=utf-8;',
-        });
-
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `كل_العملاء_${new Date().toLocaleDateString('ar-EG')}.csv`;
-        a.click();
-
-        URL.revokeObjectURL(url);
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.loading = false;
-      },
-    });
+    fetchPage();
   }
 
-  // دالة لتنسيق التاريخ
-  formatDate(date: string): string {
-    return date.split('T')[0]; // استخراج YYYY-MM-DD فقط
+  formatDate(date?: string): string {
+    return formatDateForExport(date);
   }
 
   /******************************************************المحفظة************************************************************/

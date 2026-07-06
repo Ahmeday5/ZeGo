@@ -3,7 +3,7 @@ export interface allDriver {
   name: string;
   email: string;
   phone: string;
-  governorate?: string;
+  government?: string;
   carType: string;
   carModel: string;
   carNumber: string;

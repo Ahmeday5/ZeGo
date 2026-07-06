@@ -1,45 +1,38 @@
-<button class="btn btn-primary toggle-btn" [ngClass]="{'toggle-btn-open': isSidebarOpen}" (click)="toggleSidebar()">
-  <i [class]="isSidebarOpen ? 'fa-solid fa-times' : 'fa-solid fa-bars'"></i>
-</button>
+<!-- الحاوية الخلفية (Backdrop) في وضع الموبايل فقط عند فتح الـ Drawer -->
+@if (isMobile() && isOpen()) {
+  <div class="sidebar-backdrop" (click)="closeSidebar()"></div>
+}
 
-<!-- حاوية الـ Sidebar -->
-<aside class="sidebar" [ngClass]="{'sidebar-open': isSidebarOpen}" dir="rtl">
+<aside
+  class="sidebar"
+  dir="rtl"
+  [class.sidebar-open]="isOpen() || !isMobile()"
+  [class.sidebar-mini]="isMiniMode()"
+>
   <nav class="sidebar-nav" id="sidebar">
-    <!-- رأس الـ Sidebar -->
-    <div class="sidebar-header mt-4">
-      <div class="logo" id="sidebarLogo">
-        <a routerLink="/dashboard">
-          <img src="/assets/img/logo.png" class="img-fluid" alt="Logo" loading="lazy" />
-        </a>
-      </div>
-    </div>
-
-    <!-- قائمة التنقل -->
-    <div class="mt-5">
-      <ul class="nav-menu">
-        <!-- تكرار عناصر القائمة الرئيسية باستخدام @for -->
-        @for (item of menuItems; track item.path) {
-        <li class="nav-item">
-          @if (isLogoutItem(item)) {
-          <a (click)="logout()" class="nav-link mt-5">
-            <div style="cursor: pointer;" class="icon-text">
-              <i class="fa-solid fa-sign-out-alt"></i>
-              <span>{{ item.label }}</span>
-            </div>
-          </a>
-          }@else {
-          <a [routerLink]="item.path" class="nav-link" routerLinkActive="nav-active"
-            [routerLinkActiveOptions]="{exact: false}">
-            <div class="icon-text">
-              <!-- الصورة تتغير بناءً على حالة الرابط (نشط أو غير نشط) -->
-              <i [class]="isActive(item.path) ? item.iconActive : item.iconInactive"></i>
-              <span>{{ item.label }}</span>
-            </div>
-          </a>
+    @for (section of sections; track section.title) {
+      <div class="nav-section">
+        <h6 class="nav-section-title">{{ section.title }}</h6>
+        <ul class="nav-menu">
+          @for (item of section.items; track item.path) {
+            <li class="nav-item">
+              <a
+                [routerLink]="item.path"
+                class="nav-link"
+                routerLinkActive="nav-active"
+                [routerLinkActiveOptions]="{ exact: false }"
+                [title]="item.label"
+                (click)="onLinkClicked()"
+              >
+                <div class="icon-text">
+                  <i [class]="isActive(item.path) ? item.iconActive : item.iconInactive"></i>
+                  <span class="nav-label">{{ item.label }}</span>
+                </div>
+              </a>
+            </li>
           }
-        </li>
-        }
-      </ul>
-    </div>
+        </ul>
+      </div>
+    }
   </nav>
 </aside>

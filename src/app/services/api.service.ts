@@ -4,7 +4,7 @@ import {
   HttpErrorResponse,
   HttpParams,
 } from '@angular/common/http';
-import { catchError, map, Observable, of, throwError } from 'rxjs';
+import { catchError, map, Observable, of, shareReplay, throwError } from 'rxjs';
 
 import {
   DashboardLastTripsData,
@@ -27,6 +27,7 @@ import {
   ApiResponse,
 } from '../types/pricing.type';
 import { AddAdminResponse, adminsResponse } from '../types/admins.type';
+import { Government, GovernmentResponse } from '../types/government.type';
 import { ReportsApiResponse } from '../types/reports.type';
 import { allContent, allContentResponse } from '../types/content.type';
 import {
@@ -42,6 +43,7 @@ import {
 })
 export class ApiService {
   private baseUrl = 'https://zego.premiumasp.net';
+  private governmentsCache$: Observable<Government[]> | null = null;
 
   constructor(private http: HttpClient) {}
 
@@ -99,6 +101,25 @@ export class ApiService {
           return throwError(() => new Error(this.resolveErrorMessage(error, 'فشل جلب حالات الرحلات')));
         }),
       );
+  }
+
+  /************************************Governments (المحافظات)*******************************************/
+
+  /** قائمة المحافظات - بيانات ثابتة نادرًا ما تتغير، فنخزّنها مؤقتًا (cache) عشان نتجنب تكرار الطلب في كل صفحة. */
+  getGovernments(): Observable<Government[]> {
+    if (!this.governmentsCache$) {
+      this.governmentsCache$ = this.http
+        .get<GovernmentResponse>(`${this.baseUrl}/api/Auth/government`)
+        .pipe(
+          map((res) => (res.statusCode === 200 && res.data ? res.data : [])),
+          catchError((error: HttpErrorResponse) => {
+            console.error('خطأ في جلب المحافظات:', error);
+            return of([]);
+          }),
+          shareReplay(1),
+        );
+    }
+    return this.governmentsCache$;
   }
 
   /************************************Clients*******************************************/

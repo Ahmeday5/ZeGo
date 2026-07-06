@@ -175,7 +175,6 @@ select option:disabled {
     position: relative;
 
     th {
-      color: #ffffff !important;
       font-weight: 700 !important;
       font-size: 13.5px !important;
       padding: 14px 10px !important;
@@ -272,7 +271,7 @@ select option:disabled {
 
 .form-label {
   font-weight: bold;
-  color: var(--main-color);
+  color: var(--second-color);
 }
 
 .form-control,

@@ -1,69 +1,85 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { CommonModule } from '@angular/common'; // إضافة CommonModule
+import { NAV_SECTIONS, NavSection } from '../../core/constants/nav-sections.const';
+import { SidebarService } from '../../services/sidebar.service';
 
-interface MenuItem {
-  label: string;
-  path: string | null; // ممكن يكون null لعنصر "تسجيل الخروج"
-  iconActive?: string;
-  iconInactive?: string;
-  icons?: string; // للحالات اللي عندك key مختلف
-}
+const MOBILE_BREAKPOINT_PX = 992;
+const SIDEBAR_TOGGLE_ATTR = 'data-sidebar-toggle';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterModule, CommonModule], // إضافة RouterModule لدعم routerLink و routerLinkActive
+  imports: [RouterModule, CommonModule],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
 })
-export class SidebarComponent implements OnInit, AfterViewInit {
-  // حالة الـ Sidebar (مفتوحة أو مغلقة)
-  isSidebarOpen: boolean = window.innerWidth > 992;
+export class SidebarComponent implements OnInit {
+  private readonly router = inject(Router);
+  private readonly sidebarService = inject(SidebarService);
+  private readonly host = inject(ElementRef<HTMLElement>);
 
-  // حقن Router و AuthService
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-  ) {}
+  readonly isMobile = signal(this.computeIsMobile());
+  readonly isOpen = this.sidebarService.isOpen;
+  readonly isCollapsed = this.sidebarService.isCollapsed;
 
-  // التهيئة عند تحميل الكومبوننت
+  /** مصغّرة فعليًا فقط في وضع سطح المكتب - الموبايل دايمًا بعرضه الكامل. */
+  readonly isMiniMode = computed(() => this.isCollapsed() && !this.isMobile());
+
+  readonly sections: readonly NavSection[] = NAV_SECTIONS;
+
   ngOnInit(): void {
-    // لا حاجة لتهيئة إضافية
-  }
-
-  // بعد تحميل العرض
-  ngAfterViewInit(): void {
-    // إضافة مستمع لتغيير حجم النافذة
-    window.addEventListener('resize', () => {
-      this.isSidebarOpen = window.innerWidth > 992;
-    });
-  }
-
-  // فتح/قفل الـ Sidebar
-  toggleSidebar(): void {
-    this.isSidebarOpen = !this.isSidebarOpen;
-  }
-
-  // دالة تسجيل الخروج
-  logout(): void {
-    if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-      this.authService.logout();
-      this.router.navigate(['/']);
+    // في وضع سطح المكتب الـ Sidebar ظاهرة دايمًا (الفتح/القفل يخص الموبايل فقط)
+    if (!this.isMobile()) {
+      this.sidebarService.close();
     }
   }
 
-  // دالة للتحقق إذا كان العنصر هو زر تسجيل الخروج
-  isLogoutItem(item: any): boolean {
-    return item.label === 'تسجيل الخروج';
+  @HostListener('window:resize')
+  onResize(): void {
+    const wasMobile = this.isMobile();
+    const nowMobile = this.computeIsMobile();
+    this.isMobile.set(nowMobile);
+
+    // الانتقال من موبايل لسطح مكتب أو العكس: نصفّر حالة الفتح لتفادي حالة متضاربة
+    if (wasMobile !== nowMobile) {
+      this.sidebarService.close();
+    }
   }
 
-  // ===== تغيير مهم: الدالة تقبل string | null =====
-  // إذا path = null فنحن نرجع false مباشرة (مش نشط)
-  isActive(path: string | null): boolean {
-    if (!path) return false;
+  /** يقفل الـ Drawer لو ضغط المستخدم برة الـ Sidebar وبرة زر الفتح نفسه. */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.isMobile() || !this.isOpen()) return;
 
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+    if (this.host.nativeElement.contains(target)) return;
+    if (target.closest(`[${SIDEBAR_TOGGLE_ATTR}]`)) return;
+
+    this.sidebarService.close();
+  }
+
+  closeSidebar(): void {
+    this.sidebarService.close();
+  }
+
+  /** ينفّذ بعد أي ضغط على لينك: يقفل الـ Drawer في الموبايل فقط. */
+  onLinkClicked(): void {
+    if (this.isMobile()) {
+      this.sidebarService.close();
+    }
+  }
+
+  isActive(path: string): boolean {
     return this.router.isActive(path, {
       paths: 'subset',
       queryParams: 'subset',
@@ -72,60 +88,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // قائمة العناصر في الـ Sidebar
-  menuItems: MenuItem[] = [
-    {
-      label: 'الرئيسية',
-      path: '/dashboard',
-      iconActive: 'fas fa-home text-primary', // أزرق لما تكون في الداشبورد
-      iconInactive: 'fas fa-home',
-    },
-    {
-      label: 'إدارة المستخدمين',
-      path: '/manage-users',
-      iconActive: 'fas fa-users text-success',
-      iconInactive: 'fas fa-users',
-    },
-    {
-      label: 'إدارة المديرين',
-      path: '/all-admins',
-      iconActive: 'fas fa-user-shield text-warning',
-      iconInactive: 'fas fa-user-shield',
-    },
-    {
-      label: 'محرر التسعير',
-      path: '/Pricing-editor',
-      iconActive: 'fas fa-money-bill-wave text-info',
-      iconInactive: 'fas fa-money-bill-wave',
-    },
-    {
-      label: 'التقارير',
-      path: '/reports-finances',
-      iconActive: 'fas fa-chart-bar text-danger',
-      iconInactive: 'fas fa-chart-bar',
-    },
-    {
-      label: 'الرسائل',
-      path: '/Notification', // أو أي path عندك
-      iconActive: 'fas fa-envelope text-primary',
-      iconInactive: 'far fa-envelope',
-    },
-    {
-      label: 'جهات الاتصال',
-      path: '/contents', // أو أي path عندك
-      iconActive: 'fas fa-headset text-success',
-      iconInactive: 'fas fa-headset',
-    },
-    {
-      label: 'Google Maps',
-      path: '/google-maps-usage',
-      iconActive: 'fas fa-map-location-dot text-success',
-      iconInactive: 'fas fa-map-location-dot',
-    },
-    {
-      label: 'تسجيل الخروج',
-      path: null,
-      icons: 'fas fa-sign-out-alt text-muted',
-    },
-  ];
+  private computeIsMobile(): boolean {
+    return window.innerWidth <= MOBILE_BREAKPOINT_PX;
+  }
 }

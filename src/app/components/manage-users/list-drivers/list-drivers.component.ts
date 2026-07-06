@@ -10,10 +10,17 @@ import {
   DriverDetail,
   DriversResponse,
 } from '../../../types/driver.type';
+import { Government } from '../../../types/government.type';
 import { RouterLink, Router } from '@angular/router';
 import { WalletModalComponent } from '../../wallet-modal/wallet-modal.component';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { ConfirmService } from '../../../shared/confirm-dialog/confirm.service';
+import {
+  buildExportFileName,
+  ExcelColumn,
+  exportToExcel,
+  formatDateForExport,
+} from '../../../shared/utils/excel-export.util';
 
 interface DriverEditVM {
   name: string;
@@ -49,6 +56,7 @@ export class ListDriversComponent implements OnInit {
   showFilter = false;
 
   filterForm: FormGroup;
+  governments: Government[] = [];
 
   // في أعلى الكلاس (مع المتغيرات)
   private readonly BASE_URL = 'https://zego.premiumasp.net';
@@ -91,8 +99,10 @@ export class ListDriversComponent implements OnInit {
   ) {
     this.filterForm = this.fb.group({
       name: [''],
+      phone: [''],
       carType: [''],
       isActive: [''],
+      governmentId: [''],
     });
 
     this.editDriverForm = this.fb.group({
@@ -120,6 +130,10 @@ export class ListDriversComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDrivers(1);
+    this.api.getGovernments().subscribe((governments) => {
+      this.governments = governments;
+      this.cdr.detectChanges();
+    });
   }
   /********************************اعادة تعيين كلمة المور***********************************************************/
   // Validator للتأكد إن كلمتي المرور متطابقتين
@@ -305,17 +319,7 @@ export class ListDriversComponent implements OnInit {
 
   onFilter(): void {
     this.currentPage = 1;
-    let params = new HttpParams();
-
-    const value = this.filterForm.value;
-
-    if (value.name?.trim()) params = params.set('Name', value.name.trim());
-    if (value.carType) params = params.set('CarType', value.carType);
-    if (value.isActive !== '' && value.isActive !== null) {
-      params = params.set('IsActive', value.isActive);
-    }
-
-    this.loadDrivers(1, params);
+    this.loadDrivers(1, this.getFilterParams());
   }
 
   onClear(): void {
@@ -330,17 +334,13 @@ export class ListDriversComponent implements OnInit {
 
   onPageChange(page: number): void {
     if (page === this.currentPage) return;
+    this.loadDrivers(page, this.getFilterParams());
+  }
 
-    let params = new HttpParams();
-    const value = this.filterForm.value;
-
-    if (value.name?.trim()) params = params.set('Name', value.name.trim());
-    if (value.carType) params = params.set('CarType', value.carType);
-    if (value.isActive !== '' && value.isActive !== null) {
-      params = params.set('IsActive', value.isActive);
-    }
-
-    this.loadDrivers(page, params);
+  onPageSizeChange(size: number): void {
+    if (size === this.pageSize) return;
+    this.pageSize = size;
+    this.loadDrivers(1, this.getFilterParams());
   }
 
   //اجمع الفلاتر من الـ form
@@ -349,7 +349,9 @@ export class ListDriversComponent implements OnInit {
     const value = this.filterForm.value;
 
     if (value.name?.trim()) params = params.set('Name', value.name.trim());
+    if (value.phone?.trim()) params = params.set('Phone', value.phone.trim());
     if (value.carType) params = params.set('CarType', value.carType);
+    if (value.governmentId) params = params.set('GovernmentId', value.governmentId);
     if (value.isActive !== '' && value.isActive !== null) {
       params = params.set('IsActive', value.isActive);
     }
@@ -441,123 +443,87 @@ export class ListDriversComponent implements OnInit {
     });
   }
 
-  exportCSV(): void {
-    if (!this.drivers.length) return;
+  /******************************************************تصدير Excel************************************************************/
 
-    const headers = [
-      '#',
-      'الاسم',
-      'التليفون',
-      'نوع السيارة',
-      'الموديل',
-      'رقم السيارة',
-      'رقم الرخصة',
-      'الحالة',
-      'تاريخ الانضمام',
-    ];
-    const rows = this.drivers.map((d, i) => [
-      ((this.currentPage - 1) * this.pageSize + i + 1).toString(),
-      d.name,
-      d.phone,
-      d.carType,
-      d.carModel,
-      d.carNumber,
-      d.licenseNumber,
-      d.isActive ? 'نشط' : 'محظور',
-      new Date().toLocaleDateString('ar-EG'), // لو فيه تاريخ حقيقي، ضيفه هنا
-    ]);
+  private readonly driverExcelColumns: ExcelColumn<allDriver>[] = [
+    { header: '#', value: (_d, i) => i + 1 },
+    { header: 'الاسم', value: (d) => d.name },
+    { header: 'رقم التليفون', value: (d) => d.phone },
+    { header: 'المحافظة', value: (d) => d.government || 'غير محدد' },
+    {
+      header: 'نوع السيارة',
+      value: (d) =>
+        d.carType === 'Motorcycle' ? 'موتوسيكل' : d.carType === 'Car' ? 'سيارة' : 'ديليفري',
+    },
+    { header: 'الموديل', value: (d) => d.carModel },
+    { header: 'رقم السيارة', value: (d) => d.carNumber },
+    { header: 'رقم الرخصة', value: (d) => d.licenseNumber || 'غير متاح' },
+    { header: 'الحالة', value: (d) => (d.isActive ? 'نشط' : 'محظور') },
+    { header: 'تاريخ الانضمام', value: (d) => formatDateForExport(d.createdAt) },
+  ];
 
-    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
-    const blob = new Blob(['\uFEFF' + csv], {
-      type: 'text/csv;charset=utf-8;',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `السائقين_${new Date().toLocaleDateString('ar-EG')}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  /** تصدير السائقين المعروضين في الصفحة الحالية فقط. */
+  exportExcel(): void {
+    if (!this.drivers.length) {
+      this.toast.error('لا يوجد سائقين لتصديرهم', 'تنبيه');
+      return;
+    }
+
+    exportToExcel(this.drivers, this.driverExcelColumns, buildExportFileName('سائقين_ZeGo'));
   }
 
-  generateCSV(drivers: any[]): void {
-    const headers = [
-      '#',
-      'الاسم',
-      'التليفون',
-      'نوع السيارة',
-      'الموديل',
-      'رقم السيارة',
-      'رقم الرخصة',
-      'المبلغ المستحق علي السائق',
-      'متوسط التقييم',
-      'الحالة',
-      'تاريخ الانضمام',
-    ];
-
-    const rows = drivers.map((d, i) => [
-      (i + 1).toString(),
-      d.name,
-      d.phone,
-      d.carType,
-      d.carModel,
-      d.carNumber,
-      d.licenseNumber,
-      d.debt || 'غير موجود',
-      d.averageRating || 'غير موجود',
-      d.isActive ? 'نشط' : 'محظور',
-      new Date().toLocaleDateString('ar-EG'),
-    ]);
-
-    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
-
-    const blob = new Blob(['\uFEFF' + csv], {
-      type: 'text/csv;charset=utf-8;',
-    });
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `كل_السائقين_${new Date().toLocaleDateString('ar-EG')}.csv`;
-    a.click();
-
-    URL.revokeObjectURL(url);
-  }
-
-  exportAllCSV(): void {
+  /**
+   * تصدير كل السائقين المطابقين للفلتر الحالي، بالمرور على كل الصفحات بنفس حجم الصفحة
+   * المستخدم في العرض العادي (this.pageSize) بدل تخمين حجم صفحة كبير قد يقيّده الباك اند بصمت.
+   * التوقف يتم فقط لما نجمع totalCount بيانات أو تيجي صفحة فاضية (حماية من infinite loop).
+   */
+  exportAllExcel(): void {
     this.loading = true;
 
-    let params = this.getFilterParams();
-
-    const pageSize = 50; // نفس اللي الباك بيرجعه
+    const filterParams = this.getFilterParams();
+    const requestedPageSize = this.pageSize;
     let currentPage = 1;
-    let allDrivers: any[] = [];
+    let allDrivers: allDriver[] = [];
 
     const fetchPage = () => {
-      let requestParams = params
+      const requestParams = filterParams
         .set('PageIndex', currentPage.toString())
-        .set('PageSize', pageSize.toString());
+        .set('PageSize', requestedPageSize.toString());
 
       this.api.getAllDrivers(requestParams).subscribe({
         next: (res) => {
           const data = res.data;
           const drivers = data.data || [];
+          const totalCount = data.totalCount || 0;
 
           allDrivers = [...allDrivers, ...drivers];
 
-          const totalCount = data.totalCount || 0;
-          const totalPages = Math.ceil(totalCount / pageSize);
+          const reachedTotal = allDrivers.length >= totalCount;
+          const emptyPage = drivers.length === 0;
 
-          if (currentPage < totalPages) {
+          if (!reachedTotal && !emptyPage) {
             currentPage++;
-            fetchPage(); // نجيب الصفحة اللي بعدها
-          } else {
-            // ✅ خلصنا كل الصفحات → نعمل CSV
-            this.generateCSV(allDrivers);
-            this.loading = false;
+            fetchPage();
+            return;
           }
+
+          this.loading = false;
+          if (!allDrivers.length) {
+            this.toast.error('لا يوجد سائقين مطابقين لهذا الفلتر', 'تنبيه');
+            return;
+          }
+
+          if (allDrivers.length < totalCount) {
+            console.warn(
+              `تصدير جزئي: تم جلب ${allDrivers.length} من أصل ${totalCount} سائق.`,
+            );
+          }
+
+          exportToExcel(allDrivers, this.driverExcelColumns, buildExportFileName('كل_السائقين_ZeGo'));
         },
         error: (err) => {
           console.error(err);
+          this.toast.error('فشل تصدير بيانات السائقين', 'خطأ');
           this.loading = false;
         },
       });

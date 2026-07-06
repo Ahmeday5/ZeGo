@@ -16,11 +16,11 @@
           <h6>بحث</h6>
         </button>
 
-        <button type="button" class="btn Custombtn-export" (click)="exportCSV()">
+        <button type="button" class="btn Custombtn-export" (click)="exportExcel()">
           <img src="/assets/img/customer/export.png" class="img-fluid" alt="">
-          <h6>تصدير CSV</h6>
+          <h6>تصدير Excel</h6>
         </button>
-        <button type="button" class="btn Custombtn-export" (click)="exportAllCSV()">
+        <button type="button" class="btn Custombtn-export" (click)="exportAllExcel()">
           <h6>تصدير كل السائقين</h6>
         </button>
       </div>
@@ -35,6 +35,21 @@
           <div class="col-md-4 mb-3">
             <label class="form-label">اسم السائق</label>
             <input formControlName="name" class="form-control" type="search" placeholder="ابحث بالاسم..." />
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <label class="form-label">رقم التليفون</label>
+            <input formControlName="phone" class="form-control" type="search" dir="ltr" placeholder="ابحث برقم التليفون..." />
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <label class="form-label">المحافظة</label>
+            <select formControlName="governmentId" class="form-select">
+              <option value="">كل المحافظات</option>
+              @for (gov of governments; track gov.id) {
+              <option [value]="gov.id">{{ gov.name }}</option>
+              }
+            </select>
           </div>
 
           <div class="col-md-4 mb-3">
@@ -89,6 +104,7 @@
             <th>الموديل</th>
             <th>رقم السيارة</th>
             <th>الحالة</th>
+            <th>تاريخ الانشاء</th>
             <th>التفاصيل</th>
             <th>الإجراءات</th>
           </tr>
@@ -99,7 +115,7 @@
             <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
             <td>{{ driver.name }}</td>
             <td dir="ltr">{{ driver.phone }}</td>
-            <td>{{ driver.governorate ?? 'غير محدد' }}</td>
+            <td>{{ driver.government ?? 'غير محدد' }}</td>
             <td>{{ driver.carType === 'Motorcycle' ? 'موتوسيكل' : driver.carType === 'Car' ? 'سيارة' : 'ديليفري' }}</td>
             <td>{{ driver.carModel }}</td>
             <td>{{ driver.carNumber }}</td>
@@ -108,6 +124,7 @@
                 {{ driver.isActive ? 'نشط' : 'غير نشط' }}
               </span>
             </td>
+            <td><span>{{ driver.createdAt | date: 'dd/MM/yyyy' }}</span></td>
             <td><i class="fa-regular fa-eye text-primary fa-lg cursor-pointer" (click)="viewDriverDetails(driver.id)"
                 style="cursor: pointer;"></i></td>
             <td>
@@ -143,8 +160,17 @@
     </div>
   </div>
 
-  <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" [windowSize]="1"
-    (pageChange)="onPageChange($event)"></app-pagination>
+  <app-pagination
+    [currentPage]="currentPage"
+    [totalPages]="totalPages"
+    [windowSize]="1"
+    [totalItems]="totalCount"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[10, 25, 50, 100]"
+    [disabled]="loading"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  ></app-pagination>
 
   @if (showEditDriverModal) {
   <div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">

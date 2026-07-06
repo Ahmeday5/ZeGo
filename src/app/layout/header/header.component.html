@@ -1,0 +1,29 @@
+<header class="app-header" dir="rtl">
+  <div class="app-header-start">
+    <a class="header-logo" routerLink="/dashboard">
+      <img src="/assets/img/logo.png" alt="ZeGo" loading="lazy" />
+    </a>
+
+    <button
+      type="button"
+      class="sidebar-toggle-btn"
+      [attr.data-sidebar-toggle]="true"
+      (click)="toggleSidebar()"
+      [attr.aria-expanded]="isMobile() ? isSidebarOpen() : !isSidebarCollapsed()"
+      aria-label="فتح/إغلاق القائمة الجانبية"
+    >
+      @if (isMobile()) {
+        <i class="fa-solid" [class.fa-bars]="!isSidebarOpen()" [class.fa-xmark]="isSidebarOpen()"></i>
+      } @else {
+        <i class="fa-solid" [class.fa-angles-left]="!isSidebarCollapsed()" [class.fa-angles-right]="isSidebarCollapsed()"></i>
+      }
+    </button>
+  </div>
+
+  <div class="app-header-end">
+    <button type="button" class="logout-btn" (click)="logout()">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      <span class="logout-label">تسجيل الخروج</span>
+    </button>
+  </div>
+</header>
