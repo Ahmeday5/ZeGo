@@ -30,6 +30,7 @@
           <p><b>الهاتف:</b> {{ driver?.phone }}</p>
           <p><b>المحافظة:</b> {{ driver?.government }}</p>
           <p><b>العنوان:</b> {{ driver?.address }}</p>
+          <p><b>النوع:</b> {{ genderLabel(driver?.gender) }}</p>
 
           <p>
             <b>الحالة:</b>
@@ -51,7 +52,7 @@
           <h4>بيانات السيارة</h4>
 
           <p><b>الموديل:</b> {{ driver?.carModel }}</p>
-          <p><b>النوع:</b> {{ driver?.carType }}</p>
+          <p><b>النوع:</b> {{ carTypeLabel(driver?.carType) }}</p>
           <p><b>السنة:</b> {{ driver?.carYear }}</p>
           <p><b>اللون:</b> {{ driver?.carColor }}</p>
           <p><b>الرقم:</b> {{ driver?.carNumber }}</p>

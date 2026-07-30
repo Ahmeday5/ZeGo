@@ -11,6 +11,7 @@ import {
   DriversResponse,
 } from '../../../types/driver.type';
 import { Government } from '../../../types/government.type';
+import { CAR_TYPES, carTypeLabel, GENDERS, genderLabel } from '../../../types/lookup.type';
 import { RouterLink, Router } from '@angular/router';
 import { WalletModalComponent } from '../../wallet-modal/wallet-modal.component';
 import { ToastService } from '../../../shared/toast/toast.service';
@@ -26,7 +27,6 @@ interface DriverEditVM {
   name: string;
   phone: string;
   address: string;
-  licenseNumber: string;
   expiryDate: string;
   nationalId: string;
   carModel: string;
@@ -34,6 +34,7 @@ interface DriverEditVM {
   carYear: string;
   carNumber: string;
   carColor: string;
+  gender: string;
 }
 
 @Component({
@@ -57,6 +58,10 @@ export class ListDriversComponent implements OnInit {
 
   filterForm: FormGroup;
   governments: Government[] = [];
+  readonly carTypes = CAR_TYPES;
+  readonly genders = GENDERS;
+  readonly carTypeLabel = carTypeLabel;
+  readonly genderLabel = genderLabel;
 
   // في أعلى الكلاس (مع المتغيرات)
   private readonly BASE_URL = 'https://zego.premiumasp.net';
@@ -89,6 +94,21 @@ export class ListDriversComponent implements OnInit {
     CarImage?: File;
   } = {};
 
+  // معاينة الصور: الصورة الحالية من السيرفر أو الصورة الجديدة المختارة (تفضل الجديدة لو موجودة)
+  driverFilePreviews: {
+    ProfileImage?: string;
+    LicenseImage?: string;
+    NationalIdImage?: string;
+    CarImage?: string;
+  } = {};
+
+  private existingDriverImages: {
+    ProfileImage?: string;
+    LicenseImage?: string;
+    NationalIdImage?: string;
+    CarImage?: string;
+  } = {};
+
   constructor(
     private api: ApiService,
     private fb: FormBuilder,
@@ -109,7 +129,6 @@ export class ListDriversComponent implements OnInit {
       name: [''],
       phone: [''],
       address: [''],
-      licenseNumber: [''],
       expiryDate: [''],
       nationalId: [''],
       carType: [''],
@@ -117,6 +136,7 @@ export class ListDriversComponent implements OnInit {
       carYear: [''],
       carNumber: [''],
       carColor: [''],
+      gender: [''],
     });
 
     this.resetPasswordForm = this.fb.group(
@@ -209,15 +229,23 @@ export class ListDriversComponent implements OnInit {
           name: d.name,
           phone: d.phone,
           address: d.address,
-          licenseNumber: d.licenseNumber,
-          expiryDate: d.expiryDate,
+          expiryDate: this.toDateInputValue(d.licenseExpiryDate || d.driverLicenseExpiryDate || d.expiryDate),
           nationalId: d.nationalId,
           carType: d.carType,
           carModel: d.carModel,
           carYear: d.carYear,
           carNumber: d.carNumber,
           carColor: d.carColor,
+          gender: d.gender,
         });
+
+        this.existingDriverImages = {
+          ProfileImage: d.driverProfile || d.profileImageUrl,
+          LicenseImage: d.driverLicenseImageUrl || d.licenseImageUrl,
+          NationalIdImage: d.nationalIdImageUrlFront || d.nationalIdImageUrl,
+          CarImage: d.carImgUrl,
+        };
+        this.driverFilePreviews = { ...this.existingDriverImages };
 
         this.showEditDriverModal = true;
         this.editDriverLoading = false;
@@ -236,6 +264,8 @@ export class ListDriversComponent implements OnInit {
     this.editDriverForm.reset();
     this.selectedEditDriverId = null;
     this.driverFiles = {};
+    this.driverFilePreviews = {};
+    this.existingDriverImages = {};
     this.editDriverErrorMessage = null;
     this.editDriverLoading = false;
   }
@@ -247,7 +277,20 @@ export class ListDriversComponent implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.driverFiles[fileType] = file;
+      this.driverFilePreviews[fileType] = URL.createObjectURL(file);
     }
+  }
+
+  /** يرجّع مسار الصورة كامل لو كانت نسبية (بتبدأ بـ /) من السيرفر. */
+  resolveImageUrl(url?: string): string | null {
+    if (!url) return null;
+    if (url.startsWith('blob:') || url.startsWith('http')) return url;
+    return this.BASE_URL + (url.startsWith('/') ? '' : '/') + url;
+  }
+
+  private toDateInputValue(date?: string): string {
+    if (!date) return '';
+    return date.split('T')[0];
   }
 
   submitEditDriver() {
@@ -450,11 +493,8 @@ export class ListDriversComponent implements OnInit {
     { header: 'الاسم', value: (d) => d.name },
     { header: 'رقم التليفون', value: (d) => d.phone },
     { header: 'المحافظة', value: (d) => d.government || 'غير محدد' },
-    {
-      header: 'نوع السيارة',
-      value: (d) =>
-        d.carType === 'Motorcycle' ? 'موتوسيكل' : d.carType === 'Car' ? 'سيارة' : 'ديليفري',
-    },
+    { header: 'نوع السيارة', value: (d) => carTypeLabel(d.carType) },
+    { header: 'النوع', value: (d) => genderLabel(d.gender) },
     { header: 'الموديل', value: (d) => d.carModel },
     { header: 'رقم السيارة', value: (d) => d.carNumber },
     { header: 'رقم الرخصة', value: (d) => d.licenseNumber || 'غير متاح' },

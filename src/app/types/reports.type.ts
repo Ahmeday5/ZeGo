@@ -23,7 +23,7 @@ export interface DriverTripReport {
   status: string;
 
   clientId: number;
-  carType: 'Car' | 'Delivery' | 'Motorcycle';
+  carType: 'Car' | 'Delivery' | 'Motorcycle' | 'PinkCar' | 'PinkMotorcycle';
 
   comment: string;
 

@@ -271,6 +271,10 @@ select option:disabled {
 
 /*************/
 
+.client-edit-modal {
+  z-index: 1110;
+}
+
 form {
   padding: 15px;
   border-radius: 8px;
@@ -285,12 +289,14 @@ form {
   color: var(--second-color);
 }
 
-.form-control {
+.form-control,
+.form-select {
   border-radius: 8px;
   border: 2px solid var(--main-color);
 }
 
-.form-control:focus {
+.form-control:focus,
+.form-select:focus {
   border-color: var(--main-color);
   box-shadow: 0 0 0 0.2rem rgba(var(--main-color-rgb), 0.25);
 }

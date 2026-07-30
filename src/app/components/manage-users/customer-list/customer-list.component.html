@@ -56,6 +56,7 @@
               }
             </select>
           </div>
+
         </div>
 
         <div class="row justify-content-center gap-2">
@@ -92,6 +93,7 @@
             <th>الاسم</th>
             <th>التليفون</th>
             <th>المحافظة</th>
+            <th>النوع</th>
             <th>تاريخ الانشاء</th>
             <th>الحالة</th>
             <th>الإجراءات</th>
@@ -113,6 +115,7 @@
             <td>{{ client.name }}</td>
             <td dir="ltr">{{ client.phone }}</td>
             <td>{{ client.government ?? 'غير محدد' }}</td>
+            <td>{{ genderLabel(client.gender) }}</td>
             <td>{{ formatDate(client.createdAt) }}</td>
             <td>
               <span class="badge {{ client.isActive ? 'bg-success' : 'bg-secondary' }}">
@@ -144,7 +147,7 @@
           }
           @empty {
           <tr>
-            <td colspan="5" class="text-muted py-4">لا يوجد عملاء لعرضهم</td>
+            <td colspan="9" class="text-muted py-4">لا يوجد عملاء لعرضهم</td>
           </tr>
           }
         </tbody>
@@ -183,8 +186,8 @@
 
   <!-- Edit Client Modal -->
   @if (showEditModal) {
-  <div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
-    <div class="modal-dialog modal-lg">
+  <div class="modal fade show client-edit-modal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
 
         <div class="modal-header d-flex justify-content-between">
@@ -205,26 +208,37 @@
 
           <form [formGroup]="editForm" [class.opacity-50]="showEditLoading">
 
-            <div class="mb-3 form-section">
-              <label class="form-label">الاسم</label>
-              <input type="text" class="form-control" formControlName="name">
-              <!-- validation messages -->
-            </div>
+            <div class="row row-cols-1 row-cols-md-2">
+              <div class="mb-3 form-section">
+                <label class="form-label">الاسم</label>
+                <input type="text" class="form-control" formControlName="name">
+                <!-- validation messages -->
+              </div>
 
-            <div class="mb-3 form-section">
-              <label class="form-label">رقم التليفون</label>
-              <input type="tel" class="form-control" formControlName="phone">
-              <!-- validation messages -->
-            </div>
+              <div class="mb-3 form-section">
+                <label class="form-label">رقم التليفون</label>
+                <input type="tel" class="form-control" formControlName="phone">
+                <!-- validation messages -->
+              </div>
 
-            <div class="mb-3 form-section">
-              <label class="form-label">صورة جديدة (اختياري – سيتم استبدال القديمة)</label>
-              <input type="file" class="form-control" accept="image/*" (change)="onFileChange($event)">
-              @if (fileToUpload) {
-              <small class="text-success d-block mt-1">
-                تم اختيار: {{ fileToUpload.name }}
-              </small>
-              }
+              <div class="mb-3 form-section">
+                <label class="form-label">النوع</label>
+                <select class="form-select" formControlName="gender">
+                  @for (g of genders; track g) {
+                  <option [value]="g">{{ genderLabel(g) }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="mb-3 form-section">
+                <label class="form-label">صورة جديدة (اختياري – سيتم استبدال القديمة)</label>
+                <input type="file" class="form-control" accept="image/*" (change)="onFileChange($event)">
+                @if (fileToUpload) {
+                <small class="text-success d-block mt-1">
+                  تم اختيار: {{ fileToUpload.name }}
+                </small>
+                }
+              </div>
             </div>
 
           </form>

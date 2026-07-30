@@ -1,10 +1,12 @@
+import { CarType, Gender } from './lookup.type';
+
 export interface allDriver {
   id: number;
   name: string;
   email: string;
   phone: string;
   government?: string;
-  carType: string;
+  carType: CarType | string;
   carModel: string;
   carNumber: string;
   licenseNumber: string;
@@ -22,6 +24,8 @@ export interface allDriver {
   nationalId?: string;
   driverProfile?: string;
   createdAt?: string;
+  gender?: Gender | string;
+  wallet?: number;
 }
 
 export interface DriversResponse {
@@ -58,7 +62,7 @@ export interface DriverDetail {
   carNumber: string;
   carYear: string;
   carColor: string;
-  carType: string;
+  carType: CarType | string;
   carImgUrl: string;
   carLicenseUrl?: string;
 
@@ -71,6 +75,8 @@ export interface DriverDetail {
   profitPercentage: number;
   debt: number;
   averageRating: number;
+  gender?: Gender | string;
+  wallet?: number;
 }
 
 interface Document {

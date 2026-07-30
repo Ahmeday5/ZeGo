@@ -8,6 +8,7 @@ import { ApiService } from '../../../services/api.service';
 import { PaginationComponent } from '../../../layout/pagination/pagination.component';
 import { allClient, ClientsResponse } from '../../../types/clients.type';
 import { Government } from '../../../types/government.type';
+import { GENDERS, genderLabel } from '../../../types/lookup.type';
 import { WalletModalComponent } from '../../wallet-modal/wallet-modal.component';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { ConfirmService } from '../../../shared/confirm-dialog/confirm.service';
@@ -47,6 +48,8 @@ export class CustomerListComponent implements OnInit {
   ClientMessage: string | null = null;
 
   governments: Government[] = [];
+  readonly genders = GENDERS;
+  readonly genderLabel = genderLabel;
 
   showEditModal = false;
   selectedClient: allClient | null = null;
@@ -87,6 +90,7 @@ export class CustomerListComponent implements OnInit {
       name: ['', Validators.required],
       phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10,15}$/)]],
       profileImageUrl: [''],
+      gender: [''],
     });
 
     this.resetPasswordForm = this.fb.group(
@@ -185,6 +189,7 @@ export class CustomerListComponent implements OnInit {
       name: client.name,
       phone: client.phone,
       profileImageUrl: client.profileImageUrl,
+      gender: client.gender,
     });
 
     // نجيب البيانات الكاملة
@@ -197,6 +202,7 @@ export class CustomerListComponent implements OnInit {
           name: fullClient.name,
           phone: fullClient.phone,
           profileImageUrl: fullClient.profileImageUrl,
+          gender: fullClient.gender,
         });
 
         // لو عايزين نعرض الصورة القديمة
@@ -245,6 +251,7 @@ export class CustomerListComponent implements OnInit {
         this.editForm.value.name.trim(),
         this.editForm.value.phone.trim(),
         this.fileToUpload,
+        this.editForm.value.gender,
       )
       .subscribe({
         next: () => {
@@ -424,6 +431,7 @@ export class CustomerListComponent implements OnInit {
     { header: 'الاسم', value: (c) => c.name },
     { header: 'رقم التليفون', value: (c) => c.phone },
     { header: 'المحافظة', value: (c) => c.government || 'غير محدد' },
+    { header: 'النوع', value: (c) => genderLabel(c.gender) },
     { header: 'تاريخ الانضمام', value: (c) => formatDateForExport(c.createdAt) },
     { header: 'الحالة', value: (c) => (c.isActive ? 'نشط' : 'محظور') },
   ];

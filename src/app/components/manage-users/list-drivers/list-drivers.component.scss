@@ -294,6 +294,28 @@ select option:disabled {
   line-height: 100%;
 }
 
+.driver-edit-modal {
+  z-index: 1110;
+
+  .modal-dialog.modal-xl {
+    max-width: 1100px;
+  }
+
+  .modal-body {
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+}
+
+.driver-file-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(21, 48, 78, 0.15);
+}
+
 .btn-save {
   background: var(--main-color);
   color: var(--third-color);

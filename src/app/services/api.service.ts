@@ -24,6 +24,7 @@ import {
   AddPricingResponse,
   allPricing,
   allPricingResponse,
+  PricingRequest,
   ApiResponse,
 } from '../types/pricing.type';
 import { AddAdminResponse, adminsResponse } from '../types/admins.type';
@@ -192,12 +193,16 @@ export class ApiService {
     Name: string,
     Phone: string,
     profileImage: File | null,
+    Gender?: string,
   ): Observable<AddPricingResponse> {
     const formData = new FormData();
     formData.append('Name', Name);
     formData.append('Phone', Phone);
     if (profileImage) {
       formData.append('ProfileImageUrl', profileImage);
+    }
+    if (Gender) {
+      formData.append('Gender', Gender);
     }
 
     return this.http
@@ -332,19 +337,7 @@ export class ApiService {
 
   /**********************************Pricing**************************************/
 
-  addPricing(body: {
-    carNormalPricePerKm: number | null;
-    carPeakPricePerKm: number | null;
-    carMinimumFare: number | null;
-    motorcycleNormalPricePerKm: number | null;
-    motorcyclePeakPricePerKm: number | null;
-    motorcycleMinimumFare: number | null;
-    deliveryNormalPricePerKm: number | null;
-    deliveryPeakPricePerKm: number | null;
-    deliveryMinimumFare: number | null;
-    peakStart: string;
-    peakEnd: string;
-  }): Observable<AddPricingResponse> {
+  addPricing(body: PricingRequest): Observable<AddPricingResponse> {
     return this.http
       .put<ApiResponse<null>>(`${this.baseUrl}/api/Dashboard/addEditPricing`, body)
       .pipe(

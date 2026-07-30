@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
 import { FormsModule } from '@angular/forms';
 import { DriverDetail } from '../../../types/driver.type';
+import { carTypeLabel, genderLabel } from '../../../types/lookup.type';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { ConfirmService } from '../../../shared/confirm-dialog/confirm.service';
 
@@ -40,6 +41,8 @@ export class DriverApprovalsComponent implements OnInit {
 
   driver: DriverDetail | null = null;
   documents: Document[] = [];
+  readonly carTypeLabel = carTypeLabel;
+  readonly genderLabel = genderLabel;
 
   constructor(
     private cdr: ChangeDetectorRef,

@@ -56,9 +56,9 @@
             <label class="form-label">نوع السيارة</label>
             <select formControlName="carType" class="form-select">
               <option value="">الكل</option>
-              <option value="Car">سيارة</option>
-              <option value="Motorcycle">موتوسيكل</option>
-              <option value="Delivery">ديليفري</option>
+              @for (ct of carTypes; track ct) {
+              <option [value]="ct">{{ carTypeLabel(ct) }}</option>
+              }
             </select>
           </div>
 
@@ -101,6 +101,7 @@
             <th>التليفون</th>
             <th>المحافظة</th>
             <th>نوع السيارة</th>
+            <th>النوع</th>
             <th>الموديل</th>
             <th>رقم السيارة</th>
             <th>الحالة</th>
@@ -116,7 +117,8 @@
             <td>{{ driver.name }}</td>
             <td dir="ltr">{{ driver.phone }}</td>
             <td>{{ driver.government ?? 'غير محدد' }}</td>
-            <td>{{ driver.carType === 'Motorcycle' ? 'موتوسيكل' : driver.carType === 'Car' ? 'سيارة' : 'ديليفري' }}</td>
+            <td>{{ carTypeLabel(driver.carType) }}</td>
+            <td>{{ genderLabel(driver.gender) }}</td>
             <td>{{ driver.carModel }}</td>
             <td>{{ driver.carNumber }}</td>
             <td>
@@ -152,7 +154,7 @@
           }
           @empty {
           <tr>
-            <td colspan="10" class="text-muted py-4">لا يوجد سائقين لعرضهم</td>
+            <td colspan="11" class="text-muted py-4">لا يوجد سائقين لعرضهم</td>
           </tr>
           }
         </tbody>
@@ -173,8 +175,8 @@
   ></app-pagination>
 
   @if (showEditDriverModal) {
-  <div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal fade show driver-edit-modal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content">
 
         <div class="modal-header d-flex justify-content-between">
@@ -188,85 +190,109 @@
         <div class="modal-body">
           <form [formGroup]="editDriverForm" enctype="multipart/form-data">
 
-            <div class="row">
-              <div class="col-md-6 mb-3">
+            <div class="row row-cols-1 row-cols-md-3">
+              <div class="mb-3">
                 <label class="form-label">الاسم</label>
                 <input type="text" class="form-control" formControlName="name" />
               </div>
 
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">التليفون</label>
                 <input type="text" class="form-control" formControlName="phone" />
               </div>
 
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">العنوان</label>
                 <input type="text" class="form-control" formControlName="address" />
               </div>
 
-              <div class="col-md-6 mb-3">
-                <label class="form-label">رقم الرخصة</label>
-                <input type="text" class="form-control" formControlName="licenseNumber" />
-              </div>
-
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">تاريخ انتهاء الرخصة</label>
                 <input type="date" class="form-control" formControlName="expiryDate" />
               </div>
 
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">الرقم القومي</label>
                 <input type="text" class="form-control" formControlName="nationalId" />
               </div>
 
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">نوع السيارة</label>
                 <select class="form-select" formControlName="carType">
-                  <option value="Car">سيارة</option>
-                  <option value="Motorcycle">موتوسيكل</option>
-                  <option value="Delivery">ديليفري</option>
+                  @for (ct of carTypes; track ct) {
+                  <option [value]="ct">{{ carTypeLabel(ct) }}</option>
+                  }
                 </select>
               </div>
 
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
+                <label class="form-label">النوع</label>
+                <select class="form-select" formControlName="gender">
+                  @for (g of genders; track g) {
+                  <option [value]="g">{{ genderLabel(g) }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="mb-3">
                 <label class="form-label">موديل السيارة</label>
                 <input type="text" class="form-control" formControlName="carModel" />
               </div>
 
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">سنة السيارة</label>
                 <input type="text" class="form-control" formControlName="carYear" />
               </div>
 
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">رقم السيارة</label>
                 <input type="text" class="form-control" formControlName="carNumber" />
               </div>
 
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">لون السيارة</label>
                 <input type="text" class="form-control" formControlName="carColor" />
               </div>
 
               <!-- رفع الملفات -->
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">صورة الملف الشخصي</label>
-                <input type="file" class="form-control" (change)="onFileChange($event, 'ProfileImage')" />
+                <input type="file" class="form-control" accept="image/*" (change)="onFileChange($event, 'ProfileImage')" />
+                @if (resolveImageUrl(driverFilePreviews.ProfileImage); as preview) {
+                <img [src]="preview" class="driver-file-preview mt-2" alt="معاينة صورة الملف الشخصي" />
+                } @else {
+                <small class="text-muted d-block mt-1">لا توجد صورة</small>
+                }
               </div>
 
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">صورة رخصة القيادة</label>
-                <input type="file" class="form-control" (change)="onFileChange($event, 'LicenseImage')" />
+                <input type="file" class="form-control" accept="image/*" (change)="onFileChange($event, 'LicenseImage')" />
+                @if (resolveImageUrl(driverFilePreviews.LicenseImage); as preview) {
+                <img [src]="preview" class="driver-file-preview mt-2" alt="معاينة صورة رخصة القيادة" />
+                } @else {
+                <small class="text-muted d-block mt-1">لا توجد صورة</small>
+                }
               </div>
 
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">صورة البطاقة القومية</label>
-                <input type="file" class="form-control" (change)="onFileChange($event, 'NationalIdImage')" />
+                <input type="file" class="form-control" accept="image/*" (change)="onFileChange($event, 'NationalIdImage')" />
+                @if (resolveImageUrl(driverFilePreviews.NationalIdImage); as preview) {
+                <img [src]="preview" class="driver-file-preview mt-2" alt="معاينة صورة البطاقة القومية" />
+                } @else {
+                <small class="text-muted d-block mt-1">لا توجد صورة</small>
+                }
               </div>
 
-              <div class="col-md-6 mb-3">
+              <div class="mb-3">
                 <label class="form-label">صورة السيارة</label>
-                <input type="file" class="form-control" (change)="onFileChange($event, 'CarImage')" />
+                <input type="file" class="form-control" accept="image/*" (change)="onFileChange($event, 'CarImage')" />
+                @if (resolveImageUrl(driverFilePreviews.CarImage); as preview) {
+                <img [src]="preview" class="driver-file-preview mt-2" alt="معاينة صورة السيارة" />
+                } @else {
+                <small class="text-muted d-block mt-1">لا توجد صورة</small>
+                }
               </div>
 
             </div>
