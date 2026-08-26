@@ -1,0 +1,347 @@
+<div class="cardParent">
+  <div class="card-header">
+    <div class="row justify-content-between align-items-center">
+      <div class="col-md-3">
+        <h3 class="customer-title">أكواد الخصم</h3>
+      </div>
+
+      <div class="col-md-9 d-flex gap-2 flex-wrap justify-content-md-end">
+        @if (activeTab === 'codes') {
+        <button type="button" class="btn Custombtn-filter" (click)="toggleFilter()">
+          <i class="fa-solid fa-filter me-1"></i>
+          <h6>بحث</h6>
+        </button>
+        <button type="button" class="btn Custombtn-add" (click)="openCreateModal()">
+          <i class="fa-solid fa-plus me-1"></i>
+          <h6>إضافة كود خصم</h6>
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs promo-tabs mt-3">
+      <li class="nav-item">
+        <button type="button" class="nav-link" [class.active]="activeTab === 'codes'" (click)="switchTab('codes')">
+          الأكواد
+        </button>
+      </li>
+      <li class="nav-item">
+        <button type="button" class="nav-link" [class.active]="activeTab === 'redemptions'"
+          (click)="switchTab('redemptions')">
+          سجل الاستخدام
+        </button>
+      </li>
+    </ul>
+
+    @if (activeTab === 'codes' && showFilter) {
+    <div class="filter mt-3">
+      <form [formGroup]="filterForm">
+        <h3 class="mb-4">فلترة الأكواد</h3>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label">الكود</label>
+            <input formControlName="code" class="form-control" type="search" dir="ltr" placeholder="ابحث بالكود...">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">الحالة</label>
+            <select formControlName="isActive" class="form-select">
+              <option value="">الكل</option>
+              <option value="true">نشط</option>
+              <option value="false">متوقف</option>
+            </select>
+          </div>
+        </div>
+        <div class="row justify-content-center gap-2 mt-3">
+          <button type="button" class="btn btn-filtering w-25" (click)="onFilter()">تصفية</button>
+          <button type="button" class="btn btn-remove w-25" (click)="onClear()">تفريغ</button>
+        </div>
+      </form>
+    </div>
+    }
+
+    @if (activeTab === 'redemptions') {
+    <div class="filter mt-3">
+      <form [formGroup]="redemptionsFilterForm">
+        <h3 class="mb-4">فلترة سجل الاستخدام</h3>
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label class="form-label">كود الخصم</label>
+            <app-search-select #promoCodeSelect placeholder="ابحث بكود الخصم..." [options]="promoCodeOptions"
+              [loading]="promoCodeOptionsLoading" (search)="searchPromoCodeOptions($event)"
+              (valueChange)="onPromoCodeOptionChange($event)"></app-search-select>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label">العميل</label>
+            <app-search-select #clientSelect placeholder="ابحث باسم العميل..." [options]="clientOptions"
+              [loading]="clientOptionsLoading" (search)="searchClientOptions($event)"
+              (valueChange)="onClientOptionChange($event)"></app-search-select>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label">السائق</label>
+            <app-search-select #driverSelect placeholder="ابحث باسم السائق..." [options]="driverOptions"
+              [loading]="driverOptionsLoading" (search)="searchDriverOptions($event)"
+              (valueChange)="onDriverOptionChange($event)"></app-search-select>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label">الحالة</label>
+            <select formControlName="status" class="form-select">
+              <option value="">الكل</option>
+              <option value="Applied">مطبق</option>
+              <option value="Reversed">ملغي</option>
+            </select>
+          </div>
+        </div>
+        <div class="row justify-content-center gap-2 mt-3">
+          <button type="button" class="btn btn-filtering w-25" (click)="onFilterRedemptions()">تصفية</button>
+          <button type="button" class="btn btn-remove w-25" (click)="onClearRedemptions()">تفريغ</button>
+        </div>
+      </form>
+    </div>
+    }
+  </div>
+
+  <!-- تاب الأكواد -->
+  @if (activeTab === 'codes') {
+  <div class="card-body custom-table position-relative mb-4">
+    @if (loading) {
+    <div
+      class="position-absolute top-50 start-50 translate-middle z-3 bg-white bg-opacity-75 w-100 h-100 d-flex align-items-center justify-content-center rounded">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">جاري التحميل...</span>
+      </div>
+    </div>
+    }
+
+    <div class="table-responsive">
+      <table class="table custom-table-design text-center mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الكود</th>
+            <th>نسبة الخصم</th>
+            <th>أقصى خصم</th>
+            <th>الاستخدام</th>
+            <th>الحالة</th>
+            <th>تاريخ الإنشاء</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (pc of promoCodes; track pc.id; let i = $index) {
+          <tr>
+            <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+            <td dir="ltr" class="fw-bold">{{ pc.code }}</td>
+            <td>{{ pc.discountPercentage }}%</td>
+            <td>{{ pc.maxDiscountAmount ?? 'بدون حد' }}</td>
+            <td>{{ pc.totalUsedCount }} / {{ pc.maxTotalUsage ?? '∞' }}</td>
+            <td>
+              <span class="badge cursor-pointer" [class.bg-success]="pc.isActive" [class.bg-secondary]="!pc.isActive"
+                style="cursor: pointer;" title="اضغط لتغيير الحالة" (click)="toggleActive(pc)">
+                {{ pc.isActive ? 'نشط' : 'متوقف' }}
+              </span>
+            </td>
+            <td>{{ pc.createdAt | date: 'dd/MM/yyyy' }}</td>
+            <td>
+              <i class="fa-solid fa-pen-to-square text-primary fa-lg cursor-pointer mx-2" title="تعديل"
+                style="cursor: pointer;" (click)="openEditModal(pc)"></i>
+              <i class="fa-solid fa-trash text-danger fa-lg cursor-pointer" style="cursor: pointer;" title="حذف"
+                (click)="deletePromoCode(pc)"></i>
+            </td>
+          </tr>
+          }
+          @empty {
+          <tr>
+            <td colspan="8" class="text-muted py-4">لا يوجد أكواد خصم لعرضها</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" [windowSize]="1" [totalItems]="totalCount"
+    [pageSize]="pageSize" [pageSizeOptions]="[10, 20, 50, 100]" [disabled]="loading" (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"></app-pagination>
+  }
+
+  <!-- تاب سجل الاستخدام -->
+  @if (activeTab === 'redemptions') {
+  <div class="card-body custom-table position-relative mb-4">
+    @if (redemptionsLoading) {
+    <div
+      class="position-absolute top-50 start-50 translate-middle z-3 bg-white bg-opacity-75 w-100 h-100 d-flex align-items-center justify-content-center rounded">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">جاري التحميل...</span>
+      </div>
+    </div>
+    }
+
+    <div class="table-responsive">
+      <table class="table custom-table-design text-center mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الكود</th>
+            <th>العميل</th>
+            <th>السائق</th>
+            <th>السعر الأصلي</th>
+            <th>قيمة الخصم</th>
+            <th>السعر بعد الخصم</th>
+            <th>الحالة</th>
+            <th>تاريخ الإنشاء</th>
+            <th>تاريخ الإلغاء</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of redemptions; track r.id; let i = $index) {
+          <tr>
+            <td>{{ (redemptionsCurrentPage - 1) * redemptionsPageSize + i + 1 }}</td>
+            <td dir="ltr" class="fw-bold">{{ r.promoCode }}</td>
+            <td>{{ r.clientName }}</td>
+            <td>{{ r.driverName }}</td>
+            <td>{{ r.originalPrice }}</td>
+            <td>{{ r.discountAmount }}</td>
+            <td>{{ r.discountedPrice }}</td>
+            <td>
+              <span class="badge" [class.bg-success]="r.status === 'Applied'"
+                [class.bg-secondary]="r.status === 'Reversed'">
+                {{ r.status === 'Applied' ? 'مطبق' : r.status === 'Reversed' ? 'ملغي' : r.status }}
+              </span>
+            </td>
+            <td>{{ r.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ r.reversedAt ? (r.reversedAt | date: 'dd/MM/yyyy HH:mm') : '—' }}</td>
+          </tr>
+          }
+          @empty {
+          <tr>
+            <td colspan="10" class="text-muted py-4">لا يوجد سجل استخدام لعرضه</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <app-pagination [currentPage]="redemptionsCurrentPage" [totalPages]="redemptionsTotalPages" [windowSize]="1"
+    [totalItems]="redemptionsTotalCount" [pageSize]="redemptionsPageSize" [pageSizeOptions]="[10, 20, 50, 100]"
+    [disabled]="redemptionsLoading" (pageChange)="onRedemptionsPageChange($event)"
+    (pageSizeChange)="onRedemptionsPageSizeChange($event)"></app-pagination>
+  }
+
+  <!-- Modal إنشاء كود -->
+  @if (showCreateModal) {
+  <div class="modal fade show promo-modal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header d-flex justify-content-between">
+          <h5 class="modal-title">
+            <i class="fa-solid fa-ticket me-2"></i>
+            إضافة كود خصم
+          </h5>
+          <button type="button" class="btn-close" (click)="closeCreateModal()"></button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="createForm">
+            <div class="mb-3">
+              <label class="form-label">الكود</label>
+              <input type="text" class="form-control" dir="ltr" formControlName="code" placeholder="RAMADAN2026">
+              @if (createForm.get('code')?.touched && createForm.get('code')?.hasError('required')) {
+              <small class="text-danger">الكود مطلوب</small>
+              }
+            </div>
+            <div class="mb-3">
+              <label class="form-label">نسبة الخصم (%)</label>
+              <input type="number" class="form-control" min="0" max="100" formControlName="discountPercentage">
+              @if (createForm.get('discountPercentage')?.touched &&
+              createForm.get('discountPercentage')?.hasError('required')) {
+              <small class="text-danger">نسبة الخصم مطلوبة</small>
+              }
+            </div>
+            <div class="mb-3">
+              <label class="form-label">أقصى قيمة خصم (اختياري)</label>
+              <input type="number" class="form-control" min="0" formControlName="maxDiscountAmount"
+                placeholder="بدون حد">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">أقصى عدد استخدام إجمالي (اختياري)</label>
+              <input type="number" class="form-control" min="0" formControlName="maxTotalUsage" placeholder="بدون حد">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">أقصى عدد استخدام لكل عميل (اختياري)</label>
+              <input type="number" class="form-control" min="0" formControlName="maxUsagePerClient"
+                placeholder="بدون حد">
+            </div>
+
+            <div class="d-flex justify-content-center gap-2 mt-4">
+              <button type="button" class="btn btn-save" [disabled]="createLoading" (click)="submitCreate()">
+                @if (createLoading) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                حفظ
+              </button>
+              <button type="button" class="btn btn-cansel" (click)="closeCreateModal()" [disabled]="createLoading">
+                إلغاء
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Modal تعديل كود -->
+  @if (showEditModal) {
+  <div class="modal fade show promo-modal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header d-flex justify-content-between">
+          <h5 class="modal-title">
+            <i class="fa-solid fa-pen-to-square me-2"></i>
+            تعديل كود الخصم
+          </h5>
+          <button type="button" class="btn-close" (click)="closeEditModal()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-3">
+            الكود: <strong dir="ltr">{{ selectedPromoCode?.code }}</strong>
+          </p>
+          <form [formGroup]="editForm">
+            <div class="mb-3">
+              <label class="form-label">نسبة الخصم (%)</label>
+              <input type="number" class="form-control" min="0" max="100" formControlName="discountPercentage">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">أقصى قيمة خصم (اختياري)</label>
+              <input type="number" class="form-control" min="0" formControlName="maxDiscountAmount"
+                placeholder="بدون حد">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">أقصى عدد استخدام إجمالي (اختياري)</label>
+              <input type="number" class="form-control" min="0" formControlName="maxTotalUsage" placeholder="بدون حد">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">أقصى عدد استخدام لكل عميل (اختياري)</label>
+              <input type="number" class="form-control" min="0" formControlName="maxUsagePerClient"
+                placeholder="بدون حد">
+            </div>
+
+            <div class="d-flex justify-content-center gap-2 mt-4">
+              <button type="button" class="btn btn-save" [disabled]="editLoading" (click)="submitEdit()">
+                @if (editLoading) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                حفظ التعديلات
+              </button>
+              <button type="button" class="btn btn-cansel" (click)="closeEditModal()" [disabled]="editLoading">
+                إلغاء
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>

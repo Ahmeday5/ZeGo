@@ -3,313 +3,417 @@
     <!-- Page header -->
     <div class="page-header">
       <div class="page-header__text">
-        <h1>محرر التسعير</h1>
-        <p>إدارة أسعار الرحلات ومناطق الذروة لكل نوع مركبة</p>
+        <h1>التسعير حسب المحافظة</h1>
+        <p>إدارة أسعار الرحلات ومناطق الذروة لكل محافظة على حدة</p>
       </div>
-      <div class="page-header__badge" [class.is-syncing]="loading">
-        <i class="fa-solid" [ngClass]="loading ? 'fa-arrows-rotate' : 'fa-circle-check'"></i>
-        <span>{{ loading ? 'جاري تحميل الأسعار الحالية...' : 'الأسعار محدّثة' }}</span>
-      </div>
+      <button type="button" class="btn-save" (click)="openAddModal()">
+        <i class="fa-solid fa-plus"></i>
+        <span>إضافة تسعير لمحافظة</span>
+      </button>
     </div>
 
-    <!-- Toasts -->
-    <div class="toast-stack">
-      @if (successMessage) {
-      <div class="toast-msg toast-msg--success" role="alert">
-        <i class="fa-solid fa-circle-check"></i>
-        <span>{{ successMessage }}</span>
-      </div>
-      }
-      @if (errorMessage) {
-      <div class="toast-msg toast-msg--error" role="alert">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <span>{{ errorMessage }}</span>
-      </div>
-      }
-    </div>
-
-    @if (loading) {
-    <div class="skeleton-grid">
-      @for (i of [1,2,3,4,5,6]; track i) {
-      <div class="skeleton-card">
-        <div class="skeleton-line skeleton-line--title"></div>
-        <div class="skeleton-line"></div>
-        <div class="skeleton-line"></div>
-        <div class="skeleton-line"></div>
-      </div>
-      }
-    </div>
-    } @else {
-    <form #form="ngForm" (ngSubmit)="handleSubmit()" class="pricing-form needs-validation" novalidate>
-
-      <!-- Peak hours card -->
-      <section class="vehicle-card vehicle-card--peak">
-        <header class="vehicle-card__header">
-          <span class="vehicle-card__icon"><i class="fa-solid fa-clock"></i></span>
-          <div>
-            <h2>أوقات الذروة</h2>
-            <p>الفترة الزمنية التي يُطبَّق فيها سعر الذروة على جميع المركبات</p>
-          </div>
-        </header>
-        <div class="vehicle-card__body">
-          <div class="field-grid field-grid--2">
-            <div class="field">
-              <label for="peakStart">بداية الذروة</label>
-              <input type="time" id="peakStart" class="form-control" name="peakStart" required
-                [(ngModel)]="pricing.peakStart" #peakStart="ngModel">
-              <div class="invalid-feedback">يرجى إدخال بداية الذروة</div>
-            </div>
-            <div class="field">
-              <label for="peakEnd">نهاية الذروة</label>
-              <input type="time" id="peakEnd" class="form-control" name="peakEnd" required
-                [(ngModel)]="pricing.peakEnd" #peakEnd="ngModel">
-              <div class="invalid-feedback">يرجى إدخال نهاية الذروة</div>
-            </div>
-          </div>
+    <!-- Overview table -->
+    <div class="card-body custom-table position-relative mb-4 pricing-table-card">
+      @if (loading) {
+      <div
+        class="position-absolute top-50 start-50 translate-middle z-3 bg-white bg-opacity-75 w-100 h-100 d-flex align-items-center justify-content-center rounded">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">جاري التحميل...</span>
         </div>
-      </section>
-
-      <div class="vehicle-grid">
-        <!-- Car -->
-        <section class="vehicle-card">
-          <header class="vehicle-card__header">
-            <span class="vehicle-card__icon"><i class="fa-solid fa-car-side"></i></span>
-            <div>
-              <h2>السيارة</h2>
-              <p>أسعار رحلات السيارة العادية</p>
-            </div>
-          </header>
-          <div class="vehicle-card__body">
-            <div class="field-grid field-grid--3">
-              <div class="field">
-                <label for="carNormalPricePerKm">السعر الأساسي / كم</label>
-                <div class="input-suffix">
-                  <input type="number" id="carNormalPricePerKm" class="form-control" name="carNormalPricePerKm"
-                    required min="0" step="0.01" [(ngModel)]="pricing.carNormalPricePerKm"
-                    #carNormalPricePerKm="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-              <div class="field">
-                <label for="carPeakPricePerKm">سعر الذروة / كم</label>
-                <div class="input-suffix">
-                  <input type="number" id="carPeakPricePerKm" class="form-control" name="carPeakPricePerKm" required
-                    min="0" step="0.01" [(ngModel)]="pricing.carPeakPricePerKm" #carPeakPricePerKm="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-              <div class="field">
-                <label for="carMinimumFare">الحد الأدنى للأجرة</label>
-                <div class="input-suffix">
-                  <input type="number" id="carMinimumFare" class="form-control" name="carMinimumFare" required min="0"
-                    step="0.01" [(ngModel)]="pricing.carMinimumFare" #carMinimumFare="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Pink Car -->
-        <section class="vehicle-card vehicle-card--pink">
-          <header class="vehicle-card__header">
-            <span class="vehicle-card__icon"><i class="fa-solid fa-car-side"></i></span>
-            <div>
-              <h2>السيارة الوردي</h2>
-              <p>أسعار رحلات السيارة الوردي (للسيدات)</p>
-            </div>
-          </header>
-          <div class="vehicle-card__body">
-            <div class="field-grid field-grid--3">
-              <div class="field">
-                <label for="pinkCarNormalPricePerKm">السعر الأساسي / كم</label>
-                <div class="input-suffix">
-                  <input type="number" id="pinkCarNormalPricePerKm" class="form-control"
-                    name="pinkCarNormalPricePerKm" required min="0" step="0.01"
-                    [(ngModel)]="pricing.pinkCarNormalPricePerKm" #pinkCarNormalPricePerKm="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-              <div class="field">
-                <label for="pinkCarPeakPricePerKm">سعر الذروة / كم</label>
-                <div class="input-suffix">
-                  <input type="number" id="pinkCarPeakPricePerKm" class="form-control" name="pinkCarPeakPricePerKm"
-                    required min="0" step="0.01" [(ngModel)]="pricing.pinkCarPeakPricePerKm"
-                    #pinkCarPeakPricePerKm="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-              <div class="field">
-                <label for="pinkCarMinimumFare">الحد الأدنى للأجرة</label>
-                <div class="input-suffix">
-                  <input type="number" id="pinkCarMinimumFare" class="form-control" name="pinkCarMinimumFare" required
-                    min="0" step="0.01" [(ngModel)]="pricing.pinkCarMinimumFare" #pinkCarMinimumFare="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Motorcycle -->
-        <section class="vehicle-card">
-          <header class="vehicle-card__header">
-            <span class="vehicle-card__icon"><i class="fa-solid fa-motorcycle"></i></span>
-            <div>
-              <h2>الموتوسيكل</h2>
-              <p>أسعار رحلات الموتوسيكل العادي</p>
-            </div>
-          </header>
-          <div class="vehicle-card__body">
-            <div class="field-grid field-grid--3">
-              <div class="field">
-                <label for="motorcycleNormalPricePerKm">السعر الأساسي / كم</label>
-                <div class="input-suffix">
-                  <input type="number" id="motorcycleNormalPricePerKm" class="form-control"
-                    name="motorcycleNormalPricePerKm" required min="0" step="0.01"
-                    [(ngModel)]="pricing.motorcycleNormalPricePerKm" #motorcycleNormalPricePerKm="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-              <div class="field">
-                <label for="motorcyclePeakPricePerKm">سعر الذروة / كم</label>
-                <div class="input-suffix">
-                  <input type="number" id="motorcyclePeakPricePerKm" class="form-control"
-                    name="motorcyclePeakPricePerKm" required min="0" step="0.01"
-                    [(ngModel)]="pricing.motorcyclePeakPricePerKm" #motorcyclePeakPricePerKm="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-              <div class="field">
-                <label for="motorcycleMinimumFare">الحد الأدنى للأجرة</label>
-                <div class="input-suffix">
-                  <input type="number" id="motorcycleMinimumFare" class="form-control" name="motorcycleMinimumFare"
-                    required min="0" step="0.01" [(ngModel)]="pricing.motorcycleMinimumFare"
-                    #motorcycleMinimumFare="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Pink Motorcycle -->
-        <section class="vehicle-card vehicle-card--pink">
-          <header class="vehicle-card__header">
-            <span class="vehicle-card__icon"><i class="fa-solid fa-motorcycle"></i></span>
-            <div>
-              <h2>الموتوسيكل الوردي</h2>
-              <p>أسعار رحلات الموتوسيكل الوردي (للسيدات)</p>
-            </div>
-          </header>
-          <div class="vehicle-card__body">
-            <div class="field-grid field-grid--3">
-              <div class="field">
-                <label for="pinkMotorcycleNormalPricePerKm">السعر الأساسي / كم</label>
-                <div class="input-suffix">
-                  <input type="number" id="pinkMotorcycleNormalPricePerKm" class="form-control"
-                    name="pinkMotorcycleNormalPricePerKm" required min="0" step="0.01"
-                    [(ngModel)]="pricing.pinkMotorcycleNormalPricePerKm" #pinkMotorcycleNormalPricePerKm="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-              <div class="field">
-                <label for="pinkMotorcyclePeakPricePerKm">سعر الذروة / كم</label>
-                <div class="input-suffix">
-                  <input type="number" id="pinkMotorcyclePeakPricePerKm" class="form-control"
-                    name="pinkMotorcyclePeakPricePerKm" required min="0" step="0.01"
-                    [(ngModel)]="pricing.pinkMotorcyclePeakPricePerKm" #pinkMotorcyclePeakPricePerKm="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-              <div class="field">
-                <label for="pinkMotorcycleMinimumFare">الحد الأدنى للأجرة</label>
-                <div class="input-suffix">
-                  <input type="number" id="pinkMotorcycleMinimumFare" class="form-control"
-                    name="pinkMotorcycleMinimumFare" required min="0" step="0.01"
-                    [(ngModel)]="pricing.pinkMotorcycleMinimumFare" #pinkMotorcycleMinimumFare="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Delivery -->
-        <section class="vehicle-card">
-          <header class="vehicle-card__header">
-            <span class="vehicle-card__icon"><i class="fa-solid fa-box"></i></span>
-            <div>
-              <h2>الدليفري</h2>
-              <p>أسعار خدمة توصيل الطلبات</p>
-            </div>
-          </header>
-          <div class="vehicle-card__body">
-            <div class="field-grid field-grid--3">
-              <div class="field">
-                <label for="deliveryNormalPricePerKm">السعر الأساسي / كم</label>
-                <div class="input-suffix">
-                  <input type="number" id="deliveryNormalPricePerKm" class="form-control"
-                    name="deliveryNormalPricePerKm" required min="0" step="0.01"
-                    [(ngModel)]="pricing.deliveryNormalPricePerKm" #deliveryNormalPricePerKm="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-              <div class="field">
-                <label for="deliveryPeakPricePerKm">سعر الذروة / كم</label>
-                <div class="input-suffix">
-                  <input type="number" id="deliveryPeakPricePerKm" class="form-control" name="deliveryPeakPricePerKm"
-                    required min="0" step="0.01" [(ngModel)]="pricing.deliveryPeakPricePerKm"
-                    #deliveryPeakPricePerKm="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-              <div class="field">
-                <label for="deliveryMinimumFare">الحد الأدنى للأجرة</label>
-                <div class="input-suffix">
-                  <input type="number" id="deliveryMinimumFare" class="form-control" name="deliveryMinimumFare"
-                    required min="0" step="0.01" [(ngModel)]="pricing.deliveryMinimumFare"
-                    #deliveryMinimumFare="ngModel">
-                  <span>ج.م</span>
-                </div>
-                <div class="invalid-feedback">مطلوب سعر صالح</div>
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
+      }
 
-      <!-- Sticky action bar -->
-      <div class="action-bar">
-        <div class="action-bar__hint">
-          <i class="fa-solid fa-circle-info"></i>
-          <span>التعديلات هتتطبق على كل الرحلات الجديدة فورًا بعد الحفظ</span>
-        </div>
-        <button type="submit" class="btn-save" [disabled]="isLoading">
-          @if (isLoading) {
-          <span class="spinner-border spinner-border-sm"></span>
-          <span>جاري الحفظ...</span>
-          } @else {
-          <i class="fa-solid fa-floppy-disk"></i>
-          <span>حفظ التغييرات</span>
-          }
-        </button>
+      <div class="table-responsive">
+        <table class="table custom-table-design text-center mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>المحافظة</th>
+              <th>أوقات الذروة</th>
+              <th>أسعار المركبات (عادي / ذروة)</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows; track row.governmentId; let i = $index) {
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>
+                @if (row.governmentId === null) {
+                <span class="badge bg-info-subtle text-info fw-bold">{{ defaultGovernmentLabel }}</span>
+                } @else {
+                {{ row.governmentName }}
+                }
+              </td>
+              <td dir="ltr">{{ row.peakStart }} - {{ row.peakEnd }}</td>
+              <td>
+                <div class="price-summary" dir="ltr">
+                  @for (chip of vehicleSummary(row); track chip.icon) {
+                  <span class="price-chip" [title]="chip.label">
+                    <i class="fa-solid" [ngClass]="chip.icon"></i>
+                    {{ chip.normal }} / {{ chip.peak }}
+                  </span>
+                  }
+                </div>
+              </td>
+              <td>
+                <i class="fa-solid fa-pen-to-square text-primary fa-lg cursor-pointer" title="تعديل"
+                  style="cursor: pointer;" (click)="openEditModal(row)"></i>
+              </td>
+            </tr>
+            }
+            @empty {
+            <tr>
+              <td colspan="5" class="text-muted py-4">لا يوجد تسعير مُعدّ حتى الآن</td>
+            </tr>
+            }
+          </tbody>
+        </table>
       </div>
-    </form>
-    }
+    </div>
   </div>
 </div>
+
+<!-- Add/Edit modal — rendered outside .pricing-page on purpose: that container has an
+     `animation` that creates a CSS stacking context, which traps any z-index inside it
+     and stops the modal from ever rising above the fixed header/sidebar. -->
+@if (showModal) {
+    <div class="modal fade show pricing-modal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+          <div class="modal-header d-flex justify-content-between">
+            <h5 class="modal-title">
+              <i class="fa-solid fa-money-bill-wave me-2"></i>
+              {{ isEditingExisting ? 'تعديل التسعير' : 'إضافة تسعير لمحافظة' }}
+            </h5>
+            <button type="button" class="btn-close" (click)="closeModal()"></button>
+          </div>
+
+          <div class="modal-body">
+            <form [formGroup]="pricingForm" class="pricing-form">
+
+              <!-- Government + peak hours -->
+              <section class="vehicle-card vehicle-card--peak">
+                <header class="vehicle-card__header">
+                  <span class="vehicle-card__icon"><i class="fa-solid fa-clock"></i></span>
+                  <div>
+                    <h2>المحافظة وأوقات الذروة</h2>
+                    <p>اختر المحافظة والفترة الزمنية التي يُطبَّق فيها سعر الذروة</p>
+                  </div>
+                </header>
+                <div class="vehicle-card__body">
+                  <div class="field-grid field-grid--2">
+                    <div class="field">
+                      <label for="governmentId">المحافظة</label>
+                      <select id="governmentId" class="form-control"
+                        [class.is-invalid]="fieldError('governmentId')" formControlName="governmentId">
+                        <option [value]="unselectedGovernmentValue" disabled>اختر محافظة</option>
+                        <option [value]="defaultGovernmentValue">{{ defaultGovernmentLabel }}</option>
+                        @for (gov of governments; track gov.id) {
+                        <option [value]="gov.id">{{ gov.name }}</option>
+                        }
+                      </select>
+                      @if (fieldError('governmentId'); as error) {
+                      <small class="field-error">{{ error }}</small>
+                      }
+                    </div>
+                    <div></div>
+                    <div class="field">
+                      <label for="peakStart">بداية الذروة</label>
+                      <input type="time" id="peakStart" class="form-control"
+                        [class.is-invalid]="fieldError('peakStart') || peakRangeError" formControlName="peakStart">
+                      @if (fieldError('peakStart'); as error) {
+                      <small class="field-error">{{ error }}</small>
+                      }
+                    </div>
+                    <div class="field">
+                      <label for="peakEnd">نهاية الذروة</label>
+                      <input type="time" id="peakEnd" class="form-control"
+                        [class.is-invalid]="fieldError('peakEnd') || peakRangeError" formControlName="peakEnd">
+                      @if (fieldError('peakEnd'); as error) {
+                      <small class="field-error">{{ error }}</small>
+                      }
+                    </div>
+                    @if (peakRangeError; as error) {
+                    <div class="field-error field-error--span">{{ error }}</div>
+                    }
+                  </div>
+                </div>
+              </section>
+
+              <div class="vehicle-grid">
+                <!-- Car -->
+                <section class="vehicle-card">
+                  <header class="vehicle-card__header">
+                    <span class="vehicle-card__icon"><i class="fa-solid fa-car-side"></i></span>
+                    <div>
+                      <h2>السيارة</h2>
+                      <p>أسعار رحلات السيارة العادية</p>
+                    </div>
+                  </header>
+                  <div class="vehicle-card__body">
+                    <div class="field-grid field-grid--3">
+                      <div class="field">
+                        <label>السعر الأساسي / كم</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('carNormalPricePerKm')"
+                            formControlName="carNormalPricePerKm">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('carNormalPricePerKm'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                      <div class="field">
+                        <label>سعر الذروة / كم</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('carPeakPricePerKm')"
+                            formControlName="carPeakPricePerKm">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('carPeakPricePerKm'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                      <div class="field">
+                        <label>الحد الأدنى للأجرة</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('carMinimumFare')" formControlName="carMinimumFare">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('carMinimumFare'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Pink Car -->
+                <section class="vehicle-card vehicle-card--pink">
+                  <header class="vehicle-card__header">
+                    <span class="vehicle-card__icon"><i class="fa-solid fa-car-side"></i></span>
+                    <div>
+                      <h2>السيارة الوردي</h2>
+                      <p>أسعار رحلات السيارة الوردي (للسيدات)</p>
+                    </div>
+                  </header>
+                  <div class="vehicle-card__body">
+                    <div class="field-grid field-grid--3">
+                      <div class="field">
+                        <label>السعر الأساسي / كم</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('pinkCarNormalPricePerKm')"
+                            formControlName="pinkCarNormalPricePerKm">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('pinkCarNormalPricePerKm'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                      <div class="field">
+                        <label>سعر الذروة / كم</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('pinkCarPeakPricePerKm')"
+                            formControlName="pinkCarPeakPricePerKm">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('pinkCarPeakPricePerKm'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                      <div class="field">
+                        <label>الحد الأدنى للأجرة</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('pinkCarMinimumFare')"
+                            formControlName="pinkCarMinimumFare">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('pinkCarMinimumFare'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Motorcycle -->
+                <section class="vehicle-card">
+                  <header class="vehicle-card__header">
+                    <span class="vehicle-card__icon"><i class="fa-solid fa-motorcycle"></i></span>
+                    <div>
+                      <h2>الموتوسيكل</h2>
+                      <p>أسعار رحلات الموتوسيكل العادي</p>
+                    </div>
+                  </header>
+                  <div class="vehicle-card__body">
+                    <div class="field-grid field-grid--3">
+                      <div class="field">
+                        <label>السعر الأساسي / كم</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('motorcycleNormalPricePerKm')"
+                            formControlName="motorcycleNormalPricePerKm">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('motorcycleNormalPricePerKm'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                      <div class="field">
+                        <label>سعر الذروة / كم</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('motorcyclePeakPricePerKm')"
+                            formControlName="motorcyclePeakPricePerKm">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('motorcyclePeakPricePerKm'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                      <div class="field">
+                        <label>الحد الأدنى للأجرة</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('motorcycleMinimumFare')"
+                            formControlName="motorcycleMinimumFare">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('motorcycleMinimumFare'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Pink Motorcycle -->
+                <section class="vehicle-card vehicle-card--pink">
+                  <header class="vehicle-card__header">
+                    <span class="vehicle-card__icon"><i class="fa-solid fa-motorcycle"></i></span>
+                    <div>
+                      <h2>الموتوسيكل الوردي</h2>
+                      <p>أسعار رحلات الموتوسيكل الوردي (للسيدات)</p>
+                    </div>
+                  </header>
+                  <div class="vehicle-card__body">
+                    <div class="field-grid field-grid--3">
+                      <div class="field">
+                        <label>السعر الأساسي / كم</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('pinkMotorcycleNormalPricePerKm')"
+                            formControlName="pinkMotorcycleNormalPricePerKm">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('pinkMotorcycleNormalPricePerKm'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                      <div class="field">
+                        <label>سعر الذروة / كم</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('pinkMotorcyclePeakPricePerKm')"
+                            formControlName="pinkMotorcyclePeakPricePerKm">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('pinkMotorcyclePeakPricePerKm'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                      <div class="field">
+                        <label>الحد الأدنى للأجرة</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('pinkMotorcycleMinimumFare')"
+                            formControlName="pinkMotorcycleMinimumFare">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('pinkMotorcycleMinimumFare'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Delivery -->
+                <section class="vehicle-card">
+                  <header class="vehicle-card__header">
+                    <span class="vehicle-card__icon"><i class="fa-solid fa-box"></i></span>
+                    <div>
+                      <h2>الدليفري</h2>
+                      <p>أسعار خدمة توصيل الطلبات</p>
+                    </div>
+                  </header>
+                  <div class="vehicle-card__body">
+                    <div class="field-grid field-grid--3">
+                      <div class="field">
+                        <label>السعر الأساسي / كم</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('deliveryNormalPricePerKm')"
+                            formControlName="deliveryNormalPricePerKm">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('deliveryNormalPricePerKm'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                      <div class="field">
+                        <label>سعر الذروة / كم</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('deliveryPeakPricePerKm')"
+                            formControlName="deliveryPeakPricePerKm">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('deliveryPeakPricePerKm'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                      <div class="field">
+                        <label>الحد الأدنى للأجرة</label>
+                        <div class="input-suffix">
+                          <input type="number" class="form-control" min="0" step="0.01"
+                            [class.is-invalid]="fieldError('deliveryMinimumFare')"
+                            formControlName="deliveryMinimumFare">
+                          <span>ج.م</span>
+                        </div>
+                        @if (fieldError('deliveryMinimumFare'); as error) {
+                        <small class="field-error">{{ error }}</small>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <div class="d-flex justify-content-center gap-2 mt-4">
+                <button type="button" class="btn-save" [disabled]="modalLoading" (click)="submit()">
+                  @if (modalLoading) {
+                  <span class="spinner-border spinner-border-sm"></span>
+                  <span>جاري الحفظ...</span>
+                  } @else {
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  <span>حفظ</span>
+                  }
+                </button>
+                <button type="button" class="btn btn-cansel" (click)="closeModal()" [disabled]="modalLoading">
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    }

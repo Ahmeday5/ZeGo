@@ -1,0 +1,26 @@
+<div class="search-select">
+  <div class="search-select-control" (click)="open()">
+    @if (selectedLabel && !isOpen) {
+    <span class="selected-value">{{ selectedLabel }}</span>
+    <i class="fa-solid fa-xmark clear-icon" title="إلغاء" (click)="$event.stopPropagation(); clearSelection()"></i>
+    } @else {
+    <input type="text" class="form-control" [(ngModel)]="searchTerm" (input)="onSearchInput()"
+      (focus)="open()" [placeholder]="placeholder" autocomplete="off">
+    }
+    <i class="fa-solid fa-chevron-down toggle-icon"></i>
+  </div>
+
+  @if (isOpen) {
+  <div class="search-select-menu">
+    @if (loading) {
+    <div class="search-select-item text-muted">جاري البحث...</div>
+    } @else if (options.length === 0) {
+    <div class="search-select-item text-muted">لا توجد نتائج</div>
+    } @else {
+    @for (opt of options; track opt.id) {
+    <div class="search-select-item" (click)="selectOption(opt)">{{ opt.label }}</div>
+    }
+    }
+  </div>
+  }
+</div>

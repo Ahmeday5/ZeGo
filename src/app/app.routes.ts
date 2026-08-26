@@ -19,6 +19,7 @@ import { NotificationComponent } from './components/notification/notification.co
 import { ContentsComponent } from './components/contents/contents.component';
 import { LastTripsDetailsComponent } from './components/last-trips-details/last-trips-details.component';
 import { GoogleMapsUsageComponent } from './components/google-maps-usage/google-maps-usage.component';
+import { PromoCodesComponent } from './components/promo-codes/promo-codes.component';
 
 export const routes: Routes = [
   {
@@ -98,7 +99,13 @@ export const routes: Routes = [
   {
     path: 'Pricing-editor',
     component: PricingEditorComponent,
-    title: 'محرر التسعير',
+    title: 'التسعير حسب المحافظة',
+    canActivate: [canActivate],
+  },
+  {
+    path: 'promo-codes',
+    component: PromoCodesComponent,
+    title: 'أكواد الخصم',
     canActivate: [canActivate],
   },
   {

@@ -11,7 +11,7 @@ import { Router, RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { AddPricingResponse, allPricing } from '../../types/pricing.type';
+import { AddPricingResponse } from '../../types/pricing.type';
 import { AddContentResponse, allContent } from '../../types/content.type';
 
 interface StatsCard {

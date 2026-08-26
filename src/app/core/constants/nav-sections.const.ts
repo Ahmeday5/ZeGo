@@ -43,10 +43,16 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     title: 'المالية',
     items: [
       {
-        label: 'محرر التسعير',
+        label: 'التسعير حسب المحافظة',
         path: '/Pricing-editor',
         iconActive: 'fas fa-money-bill-wave text-info',
         iconInactive: 'fas fa-money-bill-wave',
+      },
+      {
+        label: 'أكواد الخصم',
+        path: '/promo-codes',
+        iconActive: 'fas fa-ticket text-warning',
+        iconInactive: 'fas fa-ticket',
       },
       {
         label: 'التقارير',

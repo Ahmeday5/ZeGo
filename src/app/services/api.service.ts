@@ -22,11 +22,21 @@ import { allClient, ClientsResponse } from '../types/clients.type';
 import { DriversResponse } from '../types/driver.type';
 import {
   AddPricingResponse,
-  allPricing,
-  allPricingResponse,
-  PricingRequest,
   ApiResponse,
+  PricingRow,
+  PricingAllResponse,
+  PricingByGovernmentResponse,
+  PricingUpsertRequest,
 } from '../types/pricing.type';
+import {
+  PromoCode,
+  PromoCodeCreateRequest,
+  PromoCodeUpdateRequest,
+  PromoCodesListResponse,
+  PromoCodesPage,
+  PromoCodeRedemptionsResponse,
+  PromoCodeRedemptionsPage,
+} from '../types/promo-code.type';
 import { AddAdminResponse, adminsResponse } from '../types/admins.type';
 import { Government, GovernmentResponse } from '../types/government.type';
 import { ReportsApiResponse } from '../types/reports.type';
@@ -335,9 +345,44 @@ export class ApiService {
       );
   }
 
-  /**********************************Pricing**************************************/
+  /**********************************Pricing (per government)**************************************/
 
-  addPricing(body: PricingRequest): Observable<AddPricingResponse> {
+  getAllPricing(): Observable<PricingRow[]> {
+    return this.http
+      .get<PricingAllResponse>(`${this.baseUrl}/api/Dashboard/pricing/all`)
+      .pipe(
+        map((res) => {
+          if (res.statusCode === 200) return res.data || [];
+          throw new Error(res.message || 'Invalid response');
+        }),
+        catchError((error: HttpErrorResponse) => {
+          console.error('خطأ في جلب قائمة الأسعار:', error);
+          return throwError(() => new Error(this.resolveErrorMessage(error, 'فشل جلب قائمة الأسعار')));
+        }),
+      );
+  }
+
+  getPricingByGovernment(governmentId?: number | null): Observable<PricingRow | null> {
+    let params = new HttpParams();
+    if (governmentId !== null && governmentId !== undefined) {
+      params = params.set('governmentId', governmentId.toString());
+    }
+
+    return this.http
+      .get<PricingByGovernmentResponse>(`${this.baseUrl}/api/Dashboard/pricing`, { params })
+      .pipe(
+        map((res) => {
+          if (res.statusCode === 200) return res.data;
+          throw new Error(res.message || 'Invalid response');
+        }),
+        catchError((error: HttpErrorResponse) => {
+          console.error('خطأ في جلب سعر المحافظة:', error);
+          return throwError(() => new Error(this.resolveErrorMessage(error, 'فشل جلب السعر')));
+        }),
+      );
+  }
+
+  upsertPricing(body: PricingUpsertRequest): Observable<AddPricingResponse> {
     return this.http
       .put<ApiResponse<null>>(`${this.baseUrl}/api/Dashboard/addEditPricing`, body)
       .pipe(
@@ -349,8 +394,8 @@ export class ApiService {
             }) as AddPricingResponse,
         ),
         catchError((error: HttpErrorResponse) => {
-          console.error('خطأ في إضافة السعر:', error);
-          const errorMessage = error.error?.message || 'حدث خطأ أثناء الإضافة';
+          console.error('خطأ في حفظ السعر:', error);
+          const errorMessage = error.error?.message || 'حدث خطأ أثناء الحفظ';
           return throwError(
             () => ({ success: false, message: errorMessage }) as AddPricingResponse,
           );
@@ -358,17 +403,144 @@ export class ApiService {
       );
   }
 
-  getPricing(): Observable<allPricing> {
+  /**********************************Promo Codes**************************************/
+
+  createPromoCode(body: PromoCodeCreateRequest): Observable<AddPricingResponse> {
     return this.http
-      .get<allPricingResponse>(`${this.baseUrl}/api/Dashboard/pricing`)
+      .post<ApiResponse<null>>(`${this.baseUrl}/api/Dashboard/promocodes`, body)
+      .pipe(
+        map(
+          (res) =>
+            ({ success: res.statusCode === 200, message: res.message }) as AddPricingResponse,
+        ),
+        catchError((error: HttpErrorResponse) => {
+          console.error('خطأ في إضافة كود الخصم:', error);
+          const errorMessage = error.error?.message || 'حدث خطأ أثناء إضافة الكود';
+          return throwError(
+            () => ({ success: false, message: errorMessage }) as AddPricingResponse,
+          );
+        }),
+      );
+  }
+
+  getPromoCodes(params?: HttpParams): Observable<PromoCodesPage> {
+    return this.http
+      .get<PromoCodesListResponse>(`${this.baseUrl}/api/Dashboard/promocodes`, { params })
+      .pipe(
+        map((res) => res?.data || { pageIndex: 1, pageSize: 20, count: 0, data: [] }),
+        catchError((error: HttpErrorResponse) => {
+          console.error('خطأ في جلب أكواد الخصم:', error);
+          return of({ pageIndex: 1, pageSize: 20, count: 0, data: [] });
+        }),
+      );
+  }
+
+  getPromoCodeById(id: number): Observable<PromoCode> {
+    return this.http
+      .get<ApiResponse<PromoCode>>(`${this.baseUrl}/api/Dashboard/promocodes/${id}`)
       .pipe(
         map((res) => {
           if (res.statusCode === 200 && res.data) return res.data;
-          throw new Error('Invalid response');
+          throw new Error(res.message || 'Invalid response');
         }),
         catchError((error: HttpErrorResponse) => {
-          console.error('خطأ في جلب الأسعار:', error);
-          return throwError(() => new Error(this.resolveErrorMessage(error, 'فشل جلب الأسعار')));
+          console.error(`خطأ في جلب كود الخصم ${id}:`, error);
+          return throwError(() => new Error(this.resolveErrorMessage(error, 'فشل جلب بيانات الكود')));
+        }),
+      );
+  }
+
+  updatePromoCode(id: number, body: PromoCodeUpdateRequest): Observable<AddPricingResponse> {
+    return this.http
+      .put<ApiResponse<null>>(`${this.baseUrl}/api/Dashboard/promocodes/${id}`, body)
+      .pipe(
+        map(
+          (res) =>
+            ({ success: res.statusCode === 200, message: res.message }) as AddPricingResponse,
+        ),
+        catchError((error: HttpErrorResponse) => {
+          console.error(`خطأ في تحديث كود الخصم ${id}:`, error);
+          const errorMessage = error.error?.message || 'حدث خطأ أثناء التحديث';
+          return throwError(
+            () => ({ success: false, message: errorMessage }) as AddPricingResponse,
+          );
+        }),
+      );
+  }
+
+  activatePromoCode(id: number): Observable<AddPricingResponse> {
+    return this.http
+      .put<ApiResponse<null>>(`${this.baseUrl}/api/Dashboard/promocodes/${id}/activate`, {})
+      .pipe(
+        map(
+          (res) =>
+            ({ success: res.statusCode === 200, message: res.message }) as AddPricingResponse,
+        ),
+        catchError((error: HttpErrorResponse) => {
+          console.error(`خطأ في تفعيل كود الخصم ${id}:`, error);
+          return throwError(
+            () =>
+              ({
+                success: false,
+                message: this.resolveErrorMessage(error, 'فشل تفعيل الكود'),
+              }) as AddPricingResponse,
+          );
+        }),
+      );
+  }
+
+  deactivatePromoCode(id: number): Observable<AddPricingResponse> {
+    return this.http
+      .put<ApiResponse<null>>(`${this.baseUrl}/api/Dashboard/promocodes/${id}/deactivate`, {})
+      .pipe(
+        map(
+          (res) =>
+            ({ success: res.statusCode === 200, message: res.message }) as AddPricingResponse,
+        ),
+        catchError((error: HttpErrorResponse) => {
+          console.error(`خطأ في إيقاف كود الخصم ${id}:`, error);
+          return throwError(
+            () =>
+              ({
+                success: false,
+                message: this.resolveErrorMessage(error, 'فشل إيقاف الكود'),
+              }) as AddPricingResponse,
+          );
+        }),
+      );
+  }
+
+  deletePromoCode(id: number): Observable<AddPricingResponse> {
+    return this.http
+      .delete<ApiResponse<null>>(`${this.baseUrl}/api/Dashboard/promocodes/${id}`)
+      .pipe(
+        map(
+          (res) =>
+            ({ success: res.statusCode === 200, message: res.message }) as AddPricingResponse,
+        ),
+        catchError((error: HttpErrorResponse) => {
+          console.error(`خطأ في حذف كود الخصم ${id}:`, error);
+          return throwError(
+            () =>
+              ({
+                success: false,
+                message: this.resolveErrorMessage(error, 'فشل حذف الكود'),
+              }) as AddPricingResponse,
+          );
+        }),
+      );
+  }
+
+  getPromoCodeRedemptions(params?: HttpParams): Observable<PromoCodeRedemptionsPage> {
+    return this.http
+      .get<PromoCodeRedemptionsResponse>(`${this.baseUrl}/api/Dashboard/promocodes/redemptions`, {
+        params,
+      })
+      .pipe(
+        map((res) => res?.data || { pageIndex: 1, pageSize: 20, count: 0, data: [] }),
+        catchError((error: HttpErrorResponse) => {
+          console.error('خطأ في جلب سجل استخدام الأكواد:', error);
+          return of({ pageIndex: 1, pageSize: 20, count: 0, data: [] });
         }),
       );
   }

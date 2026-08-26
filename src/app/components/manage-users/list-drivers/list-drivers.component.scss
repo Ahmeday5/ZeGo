@@ -175,6 +175,14 @@ select option:disabled {
     position: relative;
 
     th {
+      /* Bootstrap 5.3's .table cell rule paints an opaque inset box-shadow using --bs-table-bg,
+         which otherwise masks this thead's gradient. Neutralize it so the gradient shows through. */
+      --bs-table-bg: transparent;
+      --bs-table-bg-state: transparent;
+      --bs-table-bg-type: transparent;
+      --bs-table-accent-bg: transparent;
+      background-color: transparent;
+      color: #fff;
       font-weight: 700 !important;
       font-size: 13.5px !important;
       padding: 14px 10px !important;

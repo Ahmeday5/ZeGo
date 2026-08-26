@@ -3,7 +3,17 @@ export interface AddPricingResponse {
   message: string;
 }
 
-export interface allPricing {
+export interface ApiResponse<T = null> {
+  statusCode: number;
+  message: string;
+  data: T;
+}
+
+export interface PricingRow {
+  governmentId: number | null;
+  governmentName: string;
+  peakStart: string;
+  peakEnd: string;
   carNormalPricePerKm: number;
   carPeakPricePerKm: number;
   carMinimumFare: number;
@@ -19,11 +29,10 @@ export interface allPricing {
   deliveryNormalPricePerKm: number;
   deliveryPeakPricePerKm: number;
   deliveryMinimumFare: number;
-  peakStart: string;
-  peakEnd: string;
 }
 
-export interface PricingRequest {
+export interface PricingUpsertRequest {
+  governmentId: number | null;
   peakStart: string;
   peakEnd: string;
   carNormalPricePerKm: number | null;
@@ -43,14 +52,14 @@ export interface PricingRequest {
   deliveryMinimumFare: number | null;
 }
 
-export interface allPricingResponse {
+export interface PricingAllResponse {
   statusCode: number;
   message: string;
-  data: allPricing; // دي برتجع اوبجكت واحد
+  data: PricingRow[];
 }
 
-export interface ApiResponse<T = null> {
+export interface PricingByGovernmentResponse {
   statusCode: number;
   message: string;
-  data: T;
+  data: PricingRow | null;
 }

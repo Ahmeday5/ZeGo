@@ -1,0 +1,294 @@
+.cardParent {
+  border: 1px solid rgba(21, 48, 78, 0.12);
+  border-top: 4px solid var(--second-color);
+  border-radius: 14px;
+  background: var(--third-color);
+  padding: 22px;
+  padding-bottom: 4px !important;
+  box-shadow: 0 6px 22px rgba(21, 48, 78, 0.07);
+}
+
+.customer-title {
+  position: relative;
+  padding-bottom: 6px;
+  color: var(--main-color);
+  font-weight: bold;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 38px;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--second-color);
+  }
+}
+
+/*********************buttons*********************/
+
+.Custombtn-filter,
+.Custombtn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+
+  h6 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 13.5px;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+.Custombtn-filter {
+  background: rgba(239, 121, 35, 0.1);
+  color: var(--second-color);
+  border: 1.5px solid rgba(239, 121, 35, 0.3);
+
+  &:hover,
+  &:focus {
+    background: rgba(239, 121, 35, 0.15);
+    border-color: var(--second-color);
+  }
+
+  h6 {
+    color: var(--second-color);
+  }
+}
+
+.Custombtn-add {
+  background: var(--main-color);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(21, 48, 78, 0.18);
+
+  &:hover {
+    filter: brightness(1.08);
+  }
+
+  h6 {
+    color: #fff;
+  }
+}
+
+/*********************tabs*********************/
+
+.promo-tabs {
+  border-bottom: 2px solid rgba(21, 48, 78, 0.12);
+
+  .nav-link {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 0;
+    position: relative;
+
+    &.active {
+      color: var(--main-color);
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--second-color);
+        border-radius: 999px 999px 0 0;
+      }
+    }
+
+    &:hover:not(.active) {
+      color: var(--main-color);
+    }
+  }
+}
+
+/*********************filter*********************/
+
+.filter {
+  position: relative;
+  background: var(--main-color);
+  color: var(--second-color);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 15px;
+  border-radius: 5px;
+  margin-top: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1050;
+}
+
+.btn-filtering {
+  background: var(--third-color);
+  color: var(--main-color);
+  border: none;
+  border-radius: 5px !important;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background: var(--third-color);
+    color: var(--main-color);
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.btn-remove {
+  background: var(--second-color);
+  color: var(--third-color);
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  margin-right: 7px;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background: var(--second-color);
+    color: var(--third-color);
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/************  table  *****************/
+
+.custom-table {
+  overflow-x: auto;
+  margin-top: 14px;
+}
+
+.custom-table-design {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(21, 48, 78, 0.06);
+  border: 1px solid #eef0f3;
+
+  thead {
+    background: linear-gradient(135deg, var(--main-color) 0%, #1d4068 100%);
+
+    th {
+      /* Bootstrap 5.3's .table cell rule paints an opaque inset box-shadow using --bs-table-bg,
+         which otherwise masks this thead's gradient. Neutralize it so the gradient shows through. */
+      --bs-table-bg: transparent;
+      --bs-table-bg-state: transparent;
+      --bs-table-bg-type: transparent;
+      --bs-table-accent-bg: transparent;
+      background-color: transparent;
+      color: #fff;
+      font-weight: 700 !important;
+      font-size: 13.5px !important;
+      padding: 14px 10px !important;
+      border-bottom: none !important;
+      white-space: nowrap;
+    }
+  }
+
+  tbody {
+    tr {
+      transition: background 0.18s ease;
+
+      &:nth-child(even) {
+        background: #fcfbf9;
+      }
+
+      &:hover {
+        background: rgba(239, 121, 35, 0.08) !important;
+      }
+
+      &:last-child td {
+        border-bottom: none !important;
+      }
+    }
+
+    td {
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      color: var(--main-color) !important;
+      padding: 13px 10px !important;
+      border-bottom: 1px solid #f1f3f6 !important;
+      vertical-align: middle !important;
+    }
+  }
+
+  .badge {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+
+    &.bg-success {
+      background: rgba(34, 139, 87, 0.14) !important;
+      color: #1d6e44 !important;
+    }
+
+    &.bg-secondary {
+      background: rgba(231, 76, 60, 0.12) !important;
+      color: #b03020 !important;
+    }
+  }
+
+  i.fa-lg {
+    transition: transform 0.15s ease;
+
+    &:hover {
+      transform: translateY(-1px) scale(1.12);
+    }
+  }
+}
+
+/************  form / modal  *****************/
+
+.promo-modal {
+  /* لازم أعلى من الهيدر (1080) والسايدبار (1060) عشان المودال مايتخبيش وراهم */
+  z-index: 1110;
+}
+
+.form-label {
+  font-weight: bold;
+  color: var(--second-color);
+}
+
+.form-control,
+.form-select {
+  border-radius: 8px;
+  border: 2px solid var(--main-color);
+}
+
+.btn-save {
+  background: var(--main-color);
+  color: var(--third-color);
+  font-size: 16px;
+  padding: 12px 24px;
+  font-weight: bold;
+  border-radius: 8px;
+  border: none;
+}
+
+.btn-cansel {
+  background: #8f8f8f;
+  color: var(--main-color);
+  font-size: 16px;
+  padding: 12px 24px;
+  font-weight: bold;
+  border-radius: 8px;
+  border: none;
+}
