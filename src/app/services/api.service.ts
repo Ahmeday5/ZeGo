@@ -40,7 +40,7 @@ import {
 import { AddAdminResponse, adminsResponse } from '../types/admins.type';
 import { Government, GovernmentResponse } from '../types/government.type';
 import { ReportsApiResponse } from '../types/reports.type';
-import { allContent, allContentResponse } from '../types/content.type';
+import { allContent, allContentResponse, EMPTY_CONTACTS } from '../types/content.type';
 import {
   WalletAdjustRequest,
   WalletAdjustResponse,
@@ -693,10 +693,7 @@ export class ApiService {
 
   /**********************************Content**************************************/
 
-  addContent(body: {
-    contactPhone: string;
-    whatsAppPhone: string;
-  }): Observable<AddPricingResponse> {
+  addContent(body: allContent): Observable<AddPricingResponse> {
     return this.http
       .put<{ message: string }>(`${this.baseUrl}/api/Dashboard/addEditContact`, body)
       .pipe(
@@ -725,7 +722,16 @@ export class ApiService {
       .get<allContentResponse>(`${this.baseUrl}/api/Dashboard/contact`)
       .pipe(
         map((res) => {
-          if (res.statusCode === 200 && res.data) return res.data;
+          // الباك بيرجع "" للفروع اللي ملهاش رقم، فبنطبّع أي null/undefined لـ ""
+          if (res.statusCode === 200 && res.data) {
+            const data = res.data;
+            return Object.fromEntries(
+              Object.keys(EMPTY_CONTACTS).map((key) => [
+                key,
+                (data[key as keyof allContent] ?? '').toString().trim(),
+              ]),
+            ) as unknown as allContent;
+          }
           throw new Error('Invalid response');
         }),
         catchError((error: HttpErrorResponse) => {

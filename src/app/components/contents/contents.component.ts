@@ -7,16 +7,28 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { AddPricingResponse } from '../../types/pricing.type';
-import { AddContentResponse, allContent } from '../../types/content.type';
+import {
+  AddContentResponse,
+  allContent,
+  ContactField,
+  EMPTY_CONTACTS,
+} from '../../types/content.type';
 
-interface StatsCard {
-  title: string;
-  value: number | string;
+interface ContactFieldConfig {
+  key: ContactField;
+  label: string;
+  placeholder: string;
+  icon: string;
+}
+
+interface BranchConfig {
+  id: string;
+  name: string;
+  fields: ContactFieldConfig[];
 }
 
 @Component({
@@ -26,30 +38,48 @@ interface StatsCard {
   templateUrl: './contents.component.html',
   styleUrl: './contents.component.scss'
 })
-
-export class ContentsComponent {
-@ViewChild('form') form!: NgForm;
+export class ContentsComponent implements OnInit {
+  @ViewChild('form') form!: NgForm;
   @ViewChild('form', { static: false, read: ElementRef })
   formElement!: ElementRef<HTMLFormElement>;
 
-  isLoading: boolean = false;
+  /** رقم موبايل مصري: 01 + (0|1|2|5) + 8 أرقام — الحقل اختياري لكن لو اتكتب لازم يطابق */
+  readonly phonePattern = '^01[0125][0-9]{8}$';
+
+  /** مصدر واحد للفروع والحقول — الفورم والكروت الاتنين بيتبنوا منه */
+  readonly branches: BranchConfig[] = [
+    {
+      id: 'sohag',
+      name: 'فرع سوهاج',
+      fields: [
+        { key: 'sohagPhone', label: 'رقم الهاتف', placeholder: 'ادخل رقم الهاتف', icon: 'fa-solid fa-phone' },
+        { key: 'sohagWhatsAppPhone', label: 'رقم واتساب', placeholder: 'ادخل رقم واتساب', icon: 'fa-brands fa-whatsapp' },
+      ],
+    },
+    {
+      id: 'alexandria',
+      name: 'فرع الإسكندرية',
+      fields: [
+        { key: 'alexandriaPhone', label: 'رقم الهاتف', placeholder: 'ادخل رقم الهاتف', icon: 'fa-solid fa-phone' },
+        { key: 'alexandriaWhatsAppPhone', label: 'رقم واتساب', placeholder: 'ادخل رقم واتساب', icon: 'fa-brands fa-whatsapp' },
+      ],
+    },
+  ];
+
+  isLoading = false;
+  loading = true;
   errorMessage: string | null = null;
   successMessage: string | null = null;
-  loading: boolean = true;
-  contentsData: allContent | null = null;
-  statsCards: StatsCard[] = [];
 
-  contents: {
-    contactPhone: string;
-    whatsAppPhone: string;
-  } = {
-    contactPhone: '',
-    whatsAppPhone: '',
-  };
+  /** آخر نسخة محفوظة على السيرفر (بتتعرض في الكروت) */
+  contentsData: allContent | null = null;
+  /** نسخة الفورم — بتتملى من الداتا الحالية عشان الـ PUT بيستبدل الأربع أرقام مع بعض */
+  contents: allContent = { ...EMPTY_CONTACTS };
+
+  private successTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private apiService: ApiService,
-    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -57,89 +87,74 @@ export class ContentsComponent {
     this.fetchAllContents();
   }
 
-  async handleSubmit(): Promise<void> {
-    const formElement = this.formElement.nativeElement;
+  /** فيه تعديل فعلي عن اللي على السيرفر؟ */
+  get isDirty(): boolean {
+    if (!this.contentsData) return true;
+    return (Object.keys(EMPTY_CONTACTS) as ContactField[]).some(
+      (key) => this.normalize(this.contents[key]) !== this.contentsData![key]
+    );
+  }
 
-    if (this.formElement) {
-      this.formElement.nativeElement.classList.add('was-validated');
-    }
+  async handleSubmit(): Promise<void> {
+    if (this.isLoading) return;
+
+    this.formElement?.nativeElement.classList.add('was-validated');
     if (!this.form.valid) {
-      Object.keys(this.form.controls).forEach((key) => {
-        this.form.controls[key].markAsTouched();
-      });
+      Object.values(this.form.controls).forEach((control) => control.markAsTouched());
       return;
     }
 
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.errorMessage = null;
+    this.successMessage = null;
+    this.isLoading = true;
 
-    const body = {
-      contactPhone: this.contents.contactPhone,
-      whatsAppPhone: this.contents.whatsAppPhone,
+    const body: allContent = {
+      sohagPhone: this.normalize(this.contents.sohagPhone),
+      sohagWhatsAppPhone: this.normalize(this.contents.sohagWhatsAppPhone),
+      alexandriaPhone: this.normalize(this.contents.alexandriaPhone),
+      alexandriaWhatsAppPhone: this.normalize(this.contents.alexandriaWhatsAppPhone),
     };
-
-    console.log('الـ body اللي هيترسل:', body);
 
     try {
       const response: AddContentResponse = await firstValueFrom(
         this.apiService.addContent(body)
       );
-      console.log('Response from addContent API:', response);
       if (response.success) {
-        this.successMessage = 'تم تحديث الارقام بنجاح';
+        this.showSuccess('تم تحديث الارقام بنجاح');
+        this.formElement?.nativeElement.classList.remove('was-validated');
         this.fetchAllContents();
-        this.isLoading = false;
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 2000);
-        this.form.resetForm();
-        this.contents = {
-          contactPhone: '',
-          whatsAppPhone: '',
-        };
-        formElement.classList.remove('was-validated');
       } else {
-        this.errorMessage = response.message || 'فشل في إضافة المحتوى';
-        this.cdr.detectChanges();
+        this.errorMessage = response.message || 'فشل في تحديث الارقام';
       }
     } catch (error: any) {
-      let errorMessage = 'حدث خطأ أثناء الإضافة';
-      if (error && 'message' in error) {
+      let errorMessage = 'حدث خطأ أثناء التحديث';
+      if (error instanceof HttpErrorResponse && error.error) {
+        errorMessage = typeof error.error === 'string' ? error.error : 'خطأ غير معروف';
+      } else if (error && 'message' in error) {
         errorMessage = error.message;
-      } else if (error instanceof HttpErrorResponse && error.error) {
-        errorMessage =
-          typeof error.error === 'string' ? error.error : 'خطأ غير معروف';
       }
       this.errorMessage = errorMessage;
-      console.error('خطأ في إضافة المحتوى:', error);
-      this.cdr.detectChanges();
+      console.error('خطأ في تحديث الارقام:', error);
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
     }
   }
 
-  // دالة لجلب كل الاحصائيات (مع استدعاء getVisiblePages)
-  fetchAllContents() {
+  /** يرجّع الفورم للقيم المحفوظة */
+  resetToSaved(): void {
+    this.contents = { ...(this.contentsData ?? EMPTY_CONTACTS) };
+    this.formElement?.nativeElement.classList.remove('was-validated');
+  }
+
+  fetchAllContents(): void {
     this.loading = true;
     this.errorMessage = null;
 
     this.apiService.getContent().subscribe({
       next: (data: allContent) => {
-        console.log('API Data:', data);
-
         this.contentsData = data;
-        // بنبني الكروت ديناميكيًا من الداتا
-        this.statsCards = [
-          {
-            title: 'رقم الهاتف للتواصل',
-            value: this.contentsData.contactPhone,
-          },
-          {
-            title: 'رقم واتساب للتواصل',
-            value: this.contentsData.whatsAppPhone,
-          },
-        ];
+        this.contents = { ...data };
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -150,5 +165,18 @@ export class ContentsComponent {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  private normalize(value: string | null | undefined): string {
+    return (value ?? '').replace(/\s+/g, '');
+  }
+
+  private showSuccess(message: string): void {
+    this.successMessage = message;
+    clearTimeout(this.successTimer);
+    this.successTimer = setTimeout(() => {
+      this.successMessage = null;
+      this.cdr.detectChanges();
+    }, 2500);
   }
 }
