@@ -73,11 +73,15 @@ export class DriverApprovalsComponent implements OnInit {
       next: (res) => {
         this.driver = res.data;
 
+        // تسجيل السائق بيرفع رخصتين منفصلتين:
+        // - رخصة القيادة  → DriverLicenseImage / DriverLicenseExpiryDate
+        // - رخصة المركبة → CarLicenseImage (والحقل القديم LicenseImage / LicenseExpiryDate)
+        // لذلك licenseImageUrl مينفعش يتعرض كرخصة قيادة.
         this.documents = [
           {
-            title: 'رخصة السائق',
-            url: this.driver?.licenseImageUrl || '/assets/img/no-image.png',
-            expiryDate: this.driver?.licenseExpiryDate,
+            title: 'رخصة القيادة',
+            url: this.driver?.driverLicenseImageUrl || '/assets/img/no-image.png',
+            expiryDate: this.formatOptionalDate(this.driver?.driverLicenseExpiryDate),
             icon: 'fa-id-card',
           },
 
@@ -94,7 +98,11 @@ export class DriverApprovalsComponent implements OnInit {
 
           {
             title: 'رخصة المركبة',
-            url: this.driver?.carLicenseUrl || '/assets/img/no-image.png',
+            url:
+              this.driver?.carLicenseUrl ||
+              this.driver?.licenseImageUrl ||
+              '/assets/img/no-image.png',
+            expiryDate: this.formatOptionalDate(this.driver?.licenseExpiryDate),
             icon: 'fa-car-side',
           },
 
@@ -220,5 +228,10 @@ export class DriverApprovalsComponent implements OnInit {
   formatDate(date?: string): string {
     if (!date) return 'غير متوفر';
     return date.split('T')[0];
+  }
+
+  /** زي formatDate لكن بيرجّع undefined لو مفيش تاريخ، عشان سطر "انتهاء" يختفي بدل ما يعرض قيمة فاضية. */
+  private formatOptionalDate(date?: string): string | undefined {
+    return date ? this.formatDate(date) : undefined;
   }
 }

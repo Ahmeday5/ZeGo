@@ -60,7 +60,7 @@ export class LastTripsDetailsComponent implements OnInit {
     this.errorMessage = null;
 
     // 500 أو 1000 حسب ما الـ backend يسمح (جرب 500 الأول)
-    this.apiService.getLastTrips(1, 500).subscribe({
+    this.apiService.getLastTrips(500, 1).subscribe({
       next: (res) => {
         const found = res.items.find((t) => t.tripId === this.tripId);
         if (found) {

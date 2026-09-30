@@ -10,10 +10,10 @@ import {
   PaginationInfo,
 } from '../../types/dashboard.type';
 import { PaginationComponent } from '../../layout/pagination/pagination.component';
-import { HttpParams } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { TripCacheService } from '../../services/trip-cache.service';
+import { ListStateConfig, ListStateService } from '../../services/list-state.service';
 
 interface StatsCard {
   title: string;
@@ -55,15 +55,25 @@ export class DashboardComponent {
   statsCards: StatsCard[] = [];
   TripsStatusCards: tripsStatusCards[] = [];
 
+  // حفظ صفحة آخر الرحلات عشان الرجوع من تفاصيل رحلة يفتح نفس الصفحة
+  private readonly lastTripsStateConfig: ListStateConfig<Record<string, never>> = {
+    key: 'dashboard.last-trips',
+    defaults: { page: 1, pageSize: 5, filters: {} },
+    allowedPageSizes: [5],
+  };
+
   constructor(
     private apiService: ApiService,
     private cdr: ChangeDetectorRef,
     private router: Router, // ← أضف ده
     private location: Location,
-    private tripCacheService: TripCacheService
+    private tripCacheService: TripCacheService,
+    private route: ActivatedRoute,
+    private listState: ListStateService,
   ) {}
 
   ngOnInit(): void {
+    this.currentPage = this.listState.restore(this.route, this.lastTripsStateConfig).page;
     this.fetchSummary();
     this.fetchLastTrips();
     this.fetchTripsStatus();
@@ -149,6 +159,11 @@ export class DashboardComponent {
   fetchLastTrips() {
     this.loading = true;
     this.nolastTripsMessage = null;
+    this.listState.persist(this.route, this.lastTripsStateConfig, {
+      page: this.currentPage,
+      pageSize: this.pageSize,
+      filters: {},
+    });
 
     this.apiService.getLastTrips(this.pageSize, this.currentPage).subscribe({
       next: (data) => {

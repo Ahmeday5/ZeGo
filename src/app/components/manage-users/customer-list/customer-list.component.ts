@@ -2,9 +2,10 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
 import { ApiService } from '../../../services/api.service';
+import { ListStateConfig, ListStateService } from '../../../services/list-state.service';
 import { PaginationComponent } from '../../../layout/pagination/pagination.component';
 import { allClient, ClientsResponse } from '../../../types/clients.type';
 import { Government } from '../../../types/government.type';
@@ -18,6 +19,13 @@ import {
   exportToExcel,
   formatDateForExport,
 } from '../../../shared/utils/excel-export.util';
+
+type CustomerFilters = {
+  name: string | null;
+  phone: string | null;
+  governmentId: string | null;
+};
+
 @Component({
   selector: 'app-customer-list',
   standalone: true,
@@ -73,12 +81,21 @@ export class CustomerListComponent implements OnInit {
   walletUserId: number | null = null;
   walletUserName: string | null = null;
 
+  // حفظ حالة القائمة (الصفحة/الفلاتر) عشان ترجع زي ما هي بعد التنقل
+  private readonly listStateConfig: ListStateConfig<CustomerFilters> = {
+    key: 'manage-users.customers',
+    defaults: { page: 1, pageSize: 10, filters: { name: '', phone: '', governmentId: '' } },
+    allowedPageSizes: [10, 25, 50, 100],
+  };
+
   constructor(
     private api: ApiService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
     private confirm: ConfirmService,
+    private route: ActivatedRoute,
+    private listState: ListStateService,
   ) {
     this.filterForm = this.fb.group({
       name: [''],
@@ -103,7 +120,7 @@ export class CustomerListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadClients(1);
+    this.restoreListState();
     this.api.getGovernments().subscribe((governments) => {
       this.governments = governments;
       this.cdr.detectChanges();
@@ -278,6 +295,7 @@ export class CustomerListComponent implements OnInit {
     // دايماً نضيف الـ pageIndex و pageSize
     params = params.set('pageIndex', page.toString());
     params = params.set('pageSize', this.pageSize.toString());
+    this.persistListState();
 
     this.api.getAllClients(params).subscribe({
       next: (res) => {
@@ -333,11 +351,24 @@ export class CustomerListComponent implements OnInit {
     if (value.name?.trim()) params = params.set('name', value.name.trim());
     if (value.phone?.trim()) params = params.set('phone', value.phone.trim());
     if (value.governmentId) params = params.set('governmentId', value.governmentId);
-    if (value.isActive !== '' && value.isActive !== null) {
-      params = params.set('IsActive', value.isActive);
-    }
 
     return params;
+  }
+
+  private restoreListState(): void {
+    const state = this.listState.restore(this.route, this.listStateConfig);
+    this.pageSize = state.pageSize;
+    this.filterForm.patchValue(state.filters);
+    this.showFilter = this.listState.hasActiveFilters(state, this.listStateConfig);
+    this.loadClients(state.page, this.getFilterParams());
+  }
+
+  private persistListState(): void {
+    this.listState.persist(this.route, this.listStateConfig, {
+      page: this.currentPage,
+      pageSize: this.pageSize,
+      filters: this.filterForm.value,
+    });
   }
 
   async deactivatedClient(id: number) {

@@ -12,7 +12,8 @@ import {
 } from '../../../types/driver.type';
 import { Government } from '../../../types/government.type';
 import { CAR_TYPES, carTypeLabel, GENDERS, genderLabel } from '../../../types/lookup.type';
-import { RouterLink, Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ListStateConfig, ListStateService } from '../../../services/list-state.service';
 import { WalletModalComponent } from '../../wallet-modal/wallet-modal.component';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { ConfirmService } from '../../../shared/confirm-dialog/confirm.service';
@@ -36,6 +37,14 @@ interface DriverEditVM {
   carColor: string;
   gender: string;
 }
+
+type DriverFilters = {
+  name: string | null;
+  phone: string | null;
+  carType: string | null;
+  isActive: string | null;
+  governmentId: string | null;
+};
 
 @Component({
   selector: 'app-list-drivers',
@@ -109,6 +118,17 @@ export class ListDriversComponent implements OnInit {
     CarImage?: string;
   } = {};
 
+  // حفظ حالة القائمة (الصفحة/الفلاتر) عشان ترجع زي ما هي بعد فتح تفاصيل سائق والرجوع
+  private readonly listStateConfig: ListStateConfig<DriverFilters> = {
+    key: 'manage-users.drivers',
+    defaults: {
+      page: 1,
+      pageSize: 10,
+      filters: { name: '', phone: '', carType: '', isActive: '', governmentId: '' },
+    },
+    allowedPageSizes: [10, 25, 50, 100],
+  };
+
   constructor(
     private api: ApiService,
     private fb: FormBuilder,
@@ -116,6 +136,8 @@ export class ListDriversComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
     private confirm: ConfirmService,
+    private route: ActivatedRoute,
+    private listState: ListStateService,
   ) {
     this.filterForm = this.fb.group({
       name: [''],
@@ -149,7 +171,7 @@ export class ListDriversComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadDrivers(1);
+    this.restoreListState();
     this.api.getGovernments().subscribe((governments) => {
       this.governments = governments;
       this.cdr.detectChanges();
@@ -340,6 +362,7 @@ export class ListDriversComponent implements OnInit {
     // نضيف الـ pagination دايمًا
     params = params.set('PageIndex', page.toString());
     params = params.set('PageSize', this.pageSize.toString());
+    this.persistListState();
 
     this.api.getAllDrivers(params).subscribe({
       next: (res) => {
@@ -400,6 +423,22 @@ export class ListDriversComponent implements OnInit {
     }
 
     return params;
+  }
+
+  private restoreListState(): void {
+    const state = this.listState.restore(this.route, this.listStateConfig);
+    this.pageSize = state.pageSize;
+    this.filterForm.patchValue(state.filters);
+    this.showFilter = this.listState.hasActiveFilters(state, this.listStateConfig);
+    this.loadDrivers(state.page, this.getFilterParams());
+  }
+
+  private persistListState(): void {
+    this.listState.persist(this.route, this.listStateConfig, {
+      page: this.currentPage,
+      pageSize: this.pageSize,
+      filters: this.filterForm.value,
+    });
   }
 
   async deactivatedDriver(id: number) {
