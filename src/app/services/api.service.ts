@@ -13,6 +13,7 @@ import {
   DashboardSummaryResponse,
   DashboardTripsStatusData,
   DashboardTripsStatusResponse,
+  LastTripItem,
   MapsUsageData,
   MapsUsageResponse,
   MapsSummaryData,
@@ -75,10 +76,18 @@ export class ApiService {
       );
   }
 
-  getLastTrips(pageSize: number, page: number): Observable<DashboardLastTripsData> {
-    const params = new HttpParams()
+  /** رحلات آخر 24 ساعة. governmentId اختياري - لو null (كل المحافظات) مش بيتبعت خالص. */
+  getLastTrips(
+    pageSize: number,
+    page: number,
+    governmentId?: number | null,
+  ): Observable<DashboardLastTripsData> {
+    let params = new HttpParams()
       .set('pageSize', pageSize.toString())
       .set('page', page.toString());
+    if (governmentId != null) {
+      params = params.set('governmentId', governmentId.toString());
+    }
 
     return this.http
       .get<DashboardLastTripsResponse>(
@@ -88,6 +97,27 @@ export class ApiService {
       .pipe(
         map((res) => {
           if (res.statusCode === 200 && res.data) return res.data;
+          throw new Error(res.message || 'Invalid response');
+        }),
+        catchError((error: HttpErrorResponse) => {
+          console.error('خطأ في جلب آخر الرحلات:', error);
+          return throwError(() => new Error(this.resolveErrorMessage(error, 'فشل جلب آخر الرحلات')));
+        }),
+      );
+  }
+
+  /** آخر الرحلات (من غير pagination) - الداتا array مباشرة في data. */
+  getLatestTrips(governmentId?: number | null): Observable<LastTripItem[]> {
+    let params = new HttpParams();
+    if (governmentId != null) {
+      params = params.set('governmentId', governmentId.toString());
+    }
+
+    return this.http
+      .get<ApiResponse<LastTripItem[]>>(`${this.baseUrl}/api/Dashboard/trips/last`, { params })
+      .pipe(
+        map((res) => {
+          if (res.statusCode === 200) return res.data || [];
           throw new Error(res.message || 'Invalid response');
         }),
         catchError((error: HttpErrorResponse) => {
@@ -204,6 +234,7 @@ export class ApiService {
     Phone: string,
     profileImage: File | null,
     Gender?: string,
+    GovernmentId?: number | null,
   ): Observable<AddPricingResponse> {
     const formData = new FormData();
     formData.append('Name', Name);
@@ -213,6 +244,10 @@ export class ApiService {
     }
     if (Gender) {
       formData.append('Gender', Gender);
+    }
+    // لو متبعتش، المحافظة مش بتتغير
+    if (GovernmentId != null) {
+      formData.append('GovernmentId', GovernmentId.toString());
     }
 
     return this.http

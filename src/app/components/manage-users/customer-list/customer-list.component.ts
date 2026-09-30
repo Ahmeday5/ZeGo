@@ -108,6 +108,7 @@ export class CustomerListComponent implements OnInit {
       phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10,15}$/)]],
       profileImageUrl: [''],
       gender: [''],
+      governmentId: [null as number | null],
     });
 
     this.resetPasswordForm = this.fb.group(
@@ -207,6 +208,7 @@ export class CustomerListComponent implements OnInit {
       phone: client.phone,
       profileImageUrl: client.profileImageUrl,
       gender: client.gender,
+      governmentId: client.governmentId ?? null,
     });
 
     // نجيب البيانات الكاملة
@@ -220,6 +222,7 @@ export class CustomerListComponent implements OnInit {
           phone: fullClient.phone,
           profileImageUrl: fullClient.profileImageUrl,
           gender: fullClient.gender,
+          governmentId: fullClient.governmentId ?? null,
         });
 
         // لو عايزين نعرض الصورة القديمة
@@ -269,6 +272,7 @@ export class CustomerListComponent implements OnInit {
         this.editForm.value.phone.trim(),
         this.fileToUpload,
         this.editForm.value.gender,
+        this.editForm.value.governmentId,
       )
       .subscribe({
         next: () => {

@@ -14,6 +14,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { TripCacheService } from '../../services/trip-cache.service';
 import { ListStateConfig, ListStateService } from '../../services/list-state.service';
+import { Government } from '../../types/government.type';
+
+type LastTripsFilters = { governmentId: string | null };
 
 interface StatsCard {
   title: string;
@@ -55,10 +58,14 @@ export class DashboardComponent {
   statsCards: StatsCard[] = [];
   TripsStatusCards: tripsStatusCards[] = [];
 
-  // حفظ صفحة آخر الرحلات عشان الرجوع من تفاصيل رحلة يفتح نفس الصفحة
-  private readonly lastTripsStateConfig: ListStateConfig<Record<string, never>> = {
+  // فلتر المحافظة ('' = كل المحافظات، ومش بيتبعت للـ API)
+  governments: Government[] = [];
+  selectedGovernmentId = '';
+
+  // حفظ صفحة آخر الرحلات وفلتر المحافظة عشان الرجوع من تفاصيل رحلة يفتح نفس الحالة
+  private readonly lastTripsStateConfig: ListStateConfig<LastTripsFilters> = {
     key: 'dashboard.last-trips',
-    defaults: { page: 1, pageSize: 5, filters: {} },
+    defaults: { page: 1, pageSize: 5, filters: { governmentId: '' } },
     allowedPageSizes: [5],
   };
 
@@ -73,7 +80,13 @@ export class DashboardComponent {
   ) {}
 
   ngOnInit(): void {
-    this.currentPage = this.listState.restore(this.route, this.lastTripsStateConfig).page;
+    const state = this.listState.restore(this.route, this.lastTripsStateConfig);
+    this.currentPage = state.page;
+    this.selectedGovernmentId = state.filters.governmentId ?? '';
+    this.apiService.getGovernments().subscribe((governments) => {
+      this.governments = governments;
+      this.cdr.detectChanges();
+    });
     this.fetchSummary();
     this.fetchLastTrips();
     this.fetchTripsStatus();
@@ -162,10 +175,11 @@ export class DashboardComponent {
     this.listState.persist(this.route, this.lastTripsStateConfig, {
       page: this.currentPage,
       pageSize: this.pageSize,
-      filters: {},
+      filters: { governmentId: this.selectedGovernmentId },
     });
 
-    this.apiService.getLastTrips(this.pageSize, this.currentPage).subscribe({
+    const governmentId = this.selectedGovernmentId ? Number(this.selectedGovernmentId) : null;
+    this.apiService.getLastTrips(this.pageSize, this.currentPage, governmentId).subscribe({
       next: (data) => {
         this.lastTrips = data.items || [];
 
@@ -188,6 +202,13 @@ export class DashboardComponent {
   onPageChange(page: number) {
     if (page === this.currentPage) return;
     this.currentPage = page;
+    this.fetchLastTrips();
+  }
+
+  onGovernmentChange(governmentId: string) {
+    if (governmentId === this.selectedGovernmentId) return;
+    this.selectedGovernmentId = governmentId;
+    this.currentPage = 1;
     this.fetchLastTrips();
   }
 

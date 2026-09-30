@@ -71,8 +71,15 @@
     <div class="row mt-3">
       <div class="col-12">
         <div class="Previous-trips">
-          <div class="title">
+          <div class="title d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h4>الرحلات اخر 24 ساعة</h4>
+            <select class="form-select government-filter" aria-label="فلتر المحافظة"
+              [value]="selectedGovernmentId" (change)="onGovernmentChange($any($event.target).value)">
+              <option value="">كل المحافظات</option>
+              @for (gov of governments; track gov.id) {
+              <option [value]="gov.id.toString()" [selected]="gov.id.toString() === selectedGovernmentId">{{ gov.name }}</option>
+              }
+            </select>
           </div>
 
           @if (loading) {
@@ -96,6 +103,7 @@
                 </h6>
                 <div class="small text-muted">
                   {{ trip.timeAgo }}
+                  • <i class="fa-solid fa-map-location-dot"></i> {{ trip.government || 'غير محدد' }}
                   @if (trip.client.name) { • العميل: {{ trip.client.name }} }
                   @if (trip.driver?.name) { • السائق: {{ trip.driver?.name }} }
                   @if (trip.offerCount > 0) { • عروض: {{ trip.offerCount }} }

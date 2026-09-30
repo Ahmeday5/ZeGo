@@ -5,6 +5,7 @@ export interface allClient {
   name: string;
   phone: string;
   government?: string;
+  governmentId?: number | null;
   email?: string;
   isActive: boolean;
   profileImageUrl: string;

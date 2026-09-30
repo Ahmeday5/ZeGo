@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router'; // أضف Router لو 
 import { Location } from '@angular/common';
 import { ApiService } from '../../services/api.service';
 import { TripCacheService } from '../../services/trip-cache.service'; // ← أضف
-import { LastTripItem } from '../../types/dashboard.type';
+import { LastTripItem, TripOffer } from '../../types/dashboard.type';
 
 @Component({
   selector: 'app-last-trips-details',
@@ -25,6 +25,17 @@ export class LastTripsDetailsComponent implements OnInit {
 
   get isCancellable(): boolean {
     return this.trip?.status !== 'Completed' && this.trip?.status !== 'Cancelled';
+  }
+
+  /** قبل بدء الرحلة: المسافة خط مستقيم (تقريبية) والمدة لسه null */
+  get isDistanceApproximate(): boolean {
+    return ['Pending', 'OfferAccepted', 'DriverArrived'].includes(this.trip?.status ?? '');
+  }
+
+  /** العرض المقبول أولًا (الباك بيرتبها كده، بس بنضمن الترتيب هنا كمان) */
+  get sortedOffers(): TripOffer[] {
+    const offers = this.trip?.offers ?? [];
+    return [...offers].sort((a, b) => Number(b.isAccepted) - Number(a.isAccepted));
   }
 
   constructor(
@@ -64,12 +75,11 @@ export class LastTripsDetailsComponent implements OnInit {
       next: (res) => {
         const found = res.items.find((t) => t.tripId === this.tripId);
         if (found) {
-          this.trip = found;
-          this.tripCacheService.set(this.tripId, found); // احفظه في الكاش للمرة الجاية
+          this.setTrip(found);
         } else {
-          this.errorMessage = `لم يتم العثور على الرحلة رقم ${this.tripId}`;
+          // مش في آخر 24 ساعة → نجرب endpoint آخر الرحلات
+          this.loadTripFromLatest();
         }
-        this.loading = false;
       },
       error: (err) => {
         console.error(err);
@@ -77,6 +87,31 @@ export class LastTripsDetailsComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  private loadTripFromLatest() {
+    this.apiService.getLatestTrips().subscribe({
+      next: (trips) => {
+        const found = trips.find((t) => t.tripId === this.tripId);
+        if (found) {
+          this.setTrip(found);
+        } else {
+          this.errorMessage = `لم يتم العثور على الرحلة رقم ${this.tripId}`;
+          this.loading = false;
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.errorMessage = 'فشل تحميل تفاصيل الرحلة، حاول مرة أخرى';
+        this.loading = false;
+      },
+    });
+  }
+
+  private setTrip(trip: LastTripItem) {
+    this.trip = trip;
+    this.tripCacheService.set(this.tripId, trip); // احفظه في الكاش للمرة الجاية
+    this.loading = false;
   }
 
   goBack() {

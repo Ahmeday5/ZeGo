@@ -50,6 +50,24 @@ export interface LastTripItem {
   driver: DriverInfo | null;
   hasDriver: boolean;
   offerCount: number;
+  /** العروض المقدَّمة على الرحلة - العرض المقبول بيجي أول واحد */
+  offers: TripOffer[];
+  /** تقريبية (خط مستقيم) قبل بدء الرحلة، وفعلية في InProgress / Completed */
+  distanceKm: number | null;
+  /** null قبل بدء الرحلة (Pending / OfferAccepted / DriverArrived) */
+  estimatedDurationMinutes: number | null;
+  governmentId: number | null;
+  /** ممكن يبقى null في الرحلات القديمة */
+  government: string | null;
+}
+
+export interface TripOffer {
+  offerId: number;
+  offeredPrice: number;
+  createdAt: string;
+  isAccepted: boolean;
+  /** null لو السائق اتمسح */
+  driver: DriverInfo | null;
 }
 
 export interface PaginationInfo {

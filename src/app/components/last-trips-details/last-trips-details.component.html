@@ -108,6 +108,28 @@
           </div>
         </div>
       </div>
+      <div class="route-meta">
+        <span class="meta-chip">
+          <i class="fa-solid fa-road"></i>
+          المسافة:
+          @if (trip.distanceKm != null) {
+          <strong>@if (isDistanceApproximate) {≈ }{{ trip.distanceKm | number: '1.0-2' }} كم</strong>
+          @if (isDistanceApproximate) {<small class="approx">تقريبًا (خط مستقيم)</small>}
+          } @else {
+          <strong>-</strong>
+          }
+        </span>
+        @if (trip.estimatedDurationMinutes != null) {
+        <span class="meta-chip">
+          <i class="fa-regular fa-clock"></i>
+          المدة المتوقعة: <strong>{{ trip.estimatedDurationMinutes }} دقيقة</strong>
+        </span>
+        }
+        <span class="meta-chip">
+          <i class="fa-solid fa-map-location-dot"></i>
+          المحافظة: <strong>{{ trip.government || 'غير محدد' }}</strong>
+        </span>
+      </div>
     </div>
 
     <!-- ============ Trip meta ============ -->
@@ -115,6 +137,7 @@
       <h2 class="panel-title"><i class="fa-solid fa-circle-info"></i> بيانات الرحلة</h2>
       <ul class="info-list">
         <li><span class="k">رقم الرحلة</span><span class="v">#{{ trip.tripId }}</span></li>
+        <li><span class="k">المحافظة</span><span class="v">{{ trip.government || 'غير محدد' }}</span></li>
         <li>
           <span class="k">الحالة</span>
           <span class="v">
@@ -227,6 +250,71 @@
       </div>
     </div>
     }
+
+    <!-- ============ Offers ============ -->
+    <div class="panel offers-panel">
+      <h2 class="panel-title">
+        <i class="fa-solid fa-hand-holding-dollar"></i> العروض المقدَّمة
+        <span class="count-badge">{{ sortedOffers.length }}</span>
+      </h2>
+      @if (sortedOffers.length) {
+      <ul class="offers-list">
+        @for (offer of sortedOffers; track offer.offerId) {
+        <li class="offer-item" [class.accepted]="offer.isAccepted">
+          @if (offer.driver; as d) {
+          @if (d.profilePic) {
+          <img class="offer-avatar" [src]="imageUrl(d.profilePic)" alt="صورة السائق" (error)="onImageError($event)" />
+          } @else {
+          <div class="offer-avatar avatar-fallback">{{ (d.name || '؟').charAt(0) }}</div>
+          }
+          <div class="offer-driver">
+            <span class="offer-name">
+              {{ d.name || 'غير محدد' }}
+              @if (offer.isAccepted) {<span class="accepted-badge"><i class="fa-solid fa-check"></i> مقبول</span>}
+            </span>
+            <span class="offer-sub">
+              <span dir="ltr">{{ d.phone || '-' }}</span>
+              <span class="rating"><i class="fa-solid fa-star"></i>
+                {{ d.rating ? (d.rating | number: '1.1-1') : 'لا يوجد تقييم' }}</span>
+            </span>
+            @if (d.car) {
+            <span class="offer-car">
+              @if (d.car.image) {
+              <img class="offer-car-img" [src]="imageUrl(d.car.image)" alt="صورة المركبة" (error)="onImageError($event)" />
+              }
+              <i [class]="getCarTypeIcon(d.car.type)"></i>
+              {{ getCarTypeInArabic(d.car.type) }} {{ d.car.model }} {{ d.car.year }}
+              @if (d.car.color) {
+              <span class="color-swatch sm" [style.backgroundColor]="parseCarColor(d.car.color)"></span>
+              <span dir="auto">{{ d.car.color }}</span>
+              }
+              @if (d.car.plate) {<span class="plate sm" dir="ltr">{{ d.car.plate }}</span>}
+            </span>
+            }
+          </div>
+          } @else {
+          <div class="offer-avatar avatar-fallback"><i class="fa-solid fa-user-slash"></i></div>
+          <div class="offer-driver">
+            <span class="offer-name text-muted">
+              سائق غير متاح
+              @if (offer.isAccepted) {<span class="accepted-badge"><i class="fa-solid fa-check"></i> مقبول</span>}
+            </span>
+          </div>
+          }
+          <div class="offer-price">
+            <span class="price">{{ offer.offeredPrice | number: '1.0-2' }} <small>ج.م</small></span>
+            <span class="time">{{ offer.createdAt | date: 'short' }}</span>
+          </div>
+        </li>
+        }
+      </ul>
+      } @else {
+      <div class="no-driver">
+        <i class="fa-solid fa-inbox"></i>
+        <p class="mb-0">لا توجد عروض</p>
+      </div>
+      }
+    </div>
   </div>
   }
 </div>

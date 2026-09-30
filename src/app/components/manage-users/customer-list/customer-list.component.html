@@ -231,6 +231,16 @@
               </div>
 
               <div class="mb-3 form-section">
+                <label class="form-label">المحافظة</label>
+                <select class="form-select" formControlName="governmentId">
+                  <option [ngValue]="null" disabled>اختر المحافظة</option>
+                  @for (gov of governments; track gov.id) {
+                  <option [ngValue]="gov.id">{{ gov.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="mb-3 form-section">
                 <label class="form-label">صورة جديدة (اختياري – سيتم استبدال القديمة)</label>
                 <input type="file" class="form-control" accept="image/*" (change)="onFileChange($event)">
                 @if (fileToUpload) {
